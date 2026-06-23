@@ -1,0 +1,143 @@
+/*
+ * Admin styles for KDNA Custom Cursor.
+ *
+ * Stage 1 covers the page shell, the three tabs, the placeholder panels and the
+ * sticky preview pane. The builder controls and the live preview are styled in
+ * later stages. UK English throughout. No em dashes.
+ */
+
+/* Hide Alpine markup until Alpine has initialised, to avoid a flash. */
+[x-cloak] {
+	display: none !important;
+}
+
+.kdna-cc-wrap {
+	max-width: 1180px;
+}
+
+.kdna-cc-title {
+	margin-bottom: 4px;
+}
+
+.kdna-cc-subtitle {
+	margin-top: 0;
+	color: #50575e;
+	font-size: 13px;
+}
+
+/* Two column layout: builder on the left, sticky preview on the right. */
+.kdna-cc-layout {
+	display: flex;
+	gap: 24px;
+	align-items: flex-start;
+}
+
+.kdna-cc-main {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+/* Tabs. We reuse the core nav-tab look but render them as buttons. */
+.kdna-cc-tabs {
+	margin-bottom: 0;
+}
+
+.kdna-cc-tabs .nav-tab {
+	cursor: pointer;
+	background: #dcdcde;
+	border-bottom: none;
+	font-size: 14px;
+}
+
+.kdna-cc-tabs .nav-tab-active,
+.kdna-cc-tabs .nav-tab-active:focus,
+.kdna-cc-tabs .nav-tab-active:hover {
+	background: #f0f0f1;
+}
+
+/* Panels sit in a white card under the tabs. */
+.kdna-cc-panels {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	padding: 20px 24px;
+	min-height: 280px;
+}
+
+.kdna-cc-panel h2 {
+	margin-top: 0;
+}
+
+.kdna-cc-placeholder {
+	color: #646970;
+	background: #f6f7f7;
+	border: 1px dashed #c3c4c7;
+	border-radius: 4px;
+	padding: 16px 18px;
+	margin: 12px 0 0;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+/* Save bar under the panels. */
+.kdna-cc-footer {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.kdna-cc-message {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.kdna-cc-message-success {
+	color: #007017;
+}
+
+.kdna-cc-message-error {
+	color: #b32d2e;
+}
+
+/* Sticky preview pane on the right. */
+.kdna-cc-preview {
+	flex: 0 0 320px;
+	position: sticky;
+	top: 46px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px 18px;
+}
+
+.kdna-cc-preview-title {
+	margin-top: 0;
+	font-size: 14px;
+}
+
+.kdna-cc-preview-stage {
+	min-height: 220px;
+	background: #1d2327;
+	border-radius: 4px;
+	padding: 16px;
+}
+
+.kdna-cc-preview-stage .kdna-cc-placeholder {
+	background: transparent;
+	border-color: #3c434a;
+	color: #c3c4c7;
+}
+
+/* Collapse to a single column on narrower admin screens. */
+@media screen and (max-width: 1100px) {
+	.kdna-cc-layout {
+		flex-direction: column;
+	}
+
+	.kdna-cc-preview {
+		flex-basis: auto;
+		width: 100%;
+		position: static;
+	}
+}
