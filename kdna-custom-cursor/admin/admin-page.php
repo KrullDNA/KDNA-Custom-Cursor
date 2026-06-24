@@ -226,9 +226,83 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<?php // Tab 3, Assignment and Options. ?>
 				<section class="kdna-cc-panel" x-show="activeTab === 'assignment'">
 					<h2><?php esc_html_e( 'Assignment & Options', 'kdna-custom-cursor' ); ?></h2>
-					<p class="kdna-cc-placeholder">
-						<?php esc_html_e( 'The global cursor, the class to cursor rules and the option toggles arrive in Stage 4 and Stage 6.', 'kdna-custom-cursor' ); ?>
-					</p>
+
+					<template x-if="!settings">
+						<p class="kdna-cc-placeholder"><?php esc_html_e( 'Loading settings...', 'kdna-custom-cursor' ); ?></p>
+					</template>
+
+					<template x-if="settings">
+						<div>
+
+							<?php // Global cursor dropdown. ?>
+							<div class="kdna-cc-field-block">
+								<label class="kdna-cc-field-label" for="kdna-cc-global"><?php esc_html_e( 'Global cursor', 'kdna-custom-cursor' ); ?></label>
+								<select id="kdna-cc-global" :value="settings.globalCursorId || ''" @change="setGlobalCursor($event.target.value)">
+									<option value=""><?php esc_html_e( 'None (use the native cursor)', 'kdna-custom-cursor' ); ?></option>
+									<template x-for="c in cursors" :key="c.id">
+										<option :value="c.id" :selected="c.id === settings.globalCursorId" x-text="c.name || c.id"></option>
+									</template>
+								</select>
+								<p class="description"><?php esc_html_e( 'The cursor used across the whole site, except where a class rule below applies.', 'kdna-custom-cursor' ); ?></p>
+							</div>
+
+							<?php // Class to cursor rules, ordered, first match wins. ?>
+							<div class="kdna-cc-field-block">
+								<h3><?php esc_html_e( 'Class to cursor rules', 'kdna-custom-cursor' ); ?></h3>
+								<p class="description"><?php esc_html_e( 'Map a CSS class or selector to a saved cursor. Rules are evaluated top to bottom, first match wins, so put specific rules above broad ones.', 'kdna-custom-cursor' ); ?></p>
+
+								<p class="kdna-cc-placeholder" x-show="settings.rules.length === 0">
+									<?php esc_html_e( 'No rules yet. Add a rule to map a class to a cursor.', 'kdna-custom-cursor' ); ?>
+								</p>
+
+								<div class="kdna-cc-rules" x-show="settings.rules.length > 0">
+									<div class="kdna-cc-rule-row kdna-cc-rule-head">
+										<span><?php esc_html_e( 'Order', 'kdna-custom-cursor' ); ?></span>
+										<span><?php esc_html_e( 'Selector', 'kdna-custom-cursor' ); ?></span>
+										<span><?php esc_html_e( 'Cursor', 'kdna-custom-cursor' ); ?></span>
+										<span><?php esc_html_e( 'Actions', 'kdna-custom-cursor' ); ?></span>
+									</div>
+									<template x-for="(rule, idx) in settings.rules" :key="rule._k">
+										<div class="kdna-cc-rule-row">
+											<span class="kdna-cc-rule-order" x-text="idx + 1"></span>
+											<input type="text" class="regular-text" x-model="rule.selector" placeholder=".my-class">
+											<select :value="rule.cursorId" @change="rule.cursorId = $event.target.value">
+												<option value=""><?php esc_html_e( 'Select a cursor', 'kdna-custom-cursor' ); ?></option>
+												<template x-for="c in cursors" :key="c.id">
+													<option :value="c.id" :selected="c.id === rule.cursorId" x-text="c.name || c.id"></option>
+												</template>
+											</select>
+											<div class="kdna-cc-rule-actions">
+												<button type="button" class="button button-small" @click="moveRule(idx, -1)" :disabled="idx === 0"><?php esc_html_e( 'Up', 'kdna-custom-cursor' ); ?></button>
+												<button type="button" class="button button-small" @click="moveRule(idx, 1)" :disabled="idx === settings.rules.length - 1"><?php esc_html_e( 'Down', 'kdna-custom-cursor' ); ?></button>
+												<button type="button" class="button button-small button-link-delete" @click="removeRule(idx)"><?php esc_html_e( 'Remove', 'kdna-custom-cursor' ); ?></button>
+											</div>
+										</div>
+									</template>
+								</div>
+
+								<p>
+									<button type="button" class="button" @click="addRule()"><?php esc_html_e( 'Add rule', 'kdna-custom-cursor' ); ?></button>
+								</p>
+							</div>
+
+							<?php // Option toggles arrive in Stage 6. ?>
+							<div class="kdna-cc-field-block">
+								<h3><?php esc_html_e( 'Options', 'kdna-custom-cursor' ); ?></h3>
+								<p class="kdna-cc-placeholder">
+									<?php esc_html_e( 'The option toggles (show native cursor, hide on tablet and mobile, hide in admin, respect reduced motion) arrive in Stage 6.', 'kdna-custom-cursor' ); ?>
+								</p>
+							</div>
+
+							<div class="kdna-cc-builder-actions">
+								<button type="button" class="button button-primary" @click="saveAssignment()" :disabled="saving">
+									<span x-show="!saving"><?php esc_html_e( 'Save Assignment', 'kdna-custom-cursor' ); ?></span>
+									<span x-show="saving" x-cloak><?php esc_html_e( 'Saving...', 'kdna-custom-cursor' ); ?></span>
+								</button>
+							</div>
+
+						</div>
+					</template>
 				</section>
 
 			</div>

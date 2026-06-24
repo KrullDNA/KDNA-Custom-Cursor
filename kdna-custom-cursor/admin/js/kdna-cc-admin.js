@@ -15,6 +15,11 @@
 	// data so Alpine does not try to proxy the engine and its DOM nodes.
 	var previewEngine = null;
 
+	// A running counter for stable rule keys, so Alpine can track rule rows as
+	// they are reordered without losing input focus. These keys are local only
+	// and are dropped by the server on save.
+	var keyCounter = 0;
+
 	/**
 	 * Generate an id made of hex and hyphens, safe for our id charset.
 	 *
@@ -447,6 +452,108 @@
 				},
 
 				/* ----------------------------------------------------------- */
+				/* Assignment and options (Stage 4)                            */
+				/* ----------------------------------------------------------- */
+
+				/**
+				 * Give every rule a stable local key so Alpine can track rows
+				 * across reordering. The keys are never sent to the server.
+				 *
+				 * @param {Object|null} settings The settings object.
+				 * @return {Object|null} The same settings, with keyed rules.
+				 */
+				keyRules: function ( settings ) {
+					if ( settings && Array.isArray( settings.rules ) ) {
+						settings.rules.forEach( function ( rule ) {
+							if ( ! rule._k ) {
+								rule._k = 'k' + ( keyCounter++ );
+							}
+						} );
+					}
+					return settings;
+				},
+
+				/**
+				 * Set the global cursor, storing null when None is chosen.
+				 *
+				 * @param {string} value The selected cursor id, or an empty string.
+				 */
+				setGlobalCursor: function ( value ) {
+					if ( this.settings ) {
+						this.settings.globalCursorId = value || null;
+					}
+				},
+
+				/**
+				 * Add an empty rule row to the bottom of the list.
+				 */
+				addRule: function () {
+					if ( ! this.settings ) {
+						return;
+					}
+					this.settings.rules.push( { selector: '', cursorId: '', _k: 'k' + ( keyCounter++ ) } );
+				},
+
+				/**
+				 * Remove a rule row by its position.
+				 *
+				 * @param {number} idx The row index.
+				 */
+				removeRule: function ( idx ) {
+					this.settings.rules.splice( idx, 1 );
+				},
+
+				/**
+				 * Move a rule row up or down, which changes its priority.
+				 *
+				 * @param {number} idx The row index.
+				 * @param {number} dir Minus one to move up, plus one to move down.
+				 */
+				moveRule: function ( idx, dir ) {
+					var arr = this.settings.rules;
+					var j = idx + dir;
+					if ( j < 0 || j >= arr.length ) {
+						return;
+					}
+					var moved = arr.splice( idx, 1 )[ 0 ];
+					arr.splice( j, 0, moved );
+				},
+
+				/**
+				 * Save the global cursor and rules to the server.
+				 */
+				saveAssignment: function () {
+					this.persistSettings( 'Assignment saved.' );
+				},
+
+				/**
+				 * Persist the settings (global cursor, rules and options).
+				 *
+				 * @param {string} okMessage The message to show on success.
+				 */
+				persistSettings: function ( okMessage ) {
+					var self = this;
+					self.saving = true;
+					self.setMessage( '', '' );
+
+					self.request( window.kdnaCcData.saveAction, { settings: JSON.stringify( self.settings ) } )
+						.then( function ( res ) {
+							if ( res && res.success ) {
+								self.settings = self.keyRules( res.data.settings || self.settings );
+								self.setMessage( okMessage || 'Saved.', 'success' );
+							} else {
+								self.setMessage( 'Save failed.', 'error' );
+							}
+						} )
+						.catch( function () {
+							self.setMessage( 'Save failed.', 'error' );
+						} )
+						.finally( function () {
+							self.saving = false;
+						} );
+				},
+
+				/* ----------------------------------------------------------- */
 				/* Persistence (Stage 1 AJAX layer)                            */
 				/* ----------------------------------------------------------- */
 
@@ -462,7 +569,7 @@
 						.then( function ( res ) {
 							if ( res && res.success ) {
 								self.cursors = res.data.cursors || [];
-								self.settings = res.data.settings || null;
+								self.settings = self.keyRules( res.data.settings || null );
 							} else {
 								self.setMessage( 'Could not load saved data.', 'error' );
 							}

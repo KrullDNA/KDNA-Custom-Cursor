@@ -287,10 +287,16 @@
 			this.shape = new ShapeCursor( this.mount, 'fixed' );
 		}
 
-		this.cursor = null;
+		// The optional global cursor, the map of cursors by id and the ordered
+		// list of class to cursor rules. The active cursor is whichever one
+		// currently applies under the pointer.
+		this.globalCursor = null;
+		this.cursors = {};
+		this.rules = [];
 		this.forcedState = null;
-		this.hovering = false;
+		this.activeCursor = null;
 		this.state = 'normal';
+		this.lastTarget = null;
 
 		// Position state, target is the pointer, outer trails toward it.
 		this.tx = 0;
@@ -329,58 +335,118 @@
 	 * @return {void}
 	 */
 	PointerEngine.prototype.update = function ( cursor, forcedState ) {
-		this.cursor = cursor;
+		// Single cursor mode, used by the admin preview.
+		this.globalCursor = cursor || null;
+		this.cursors = {};
+		this.rules = [];
 		this.forcedState = forcedState || null;
 		// Hide when there is no cursor. Otherwise the cursor stays hidden until
 		// the first pointer move, which avoids a flash in the top left corner.
 		if ( ! cursor ) {
 			this.setVisible( false );
 		}
-		this._applyState();
+		this._refresh();
 	};
 
 	/**
-	 * Work out which state to show right now.
+	 * Set the front-end configuration: an optional global cursor, the map of
+	 * cursors by id, and the ordered list of class to cursor rules.
 	 *
-	 * @return {string} normal or hover.
+	 * @param {Object} globalCursor The global cursor, or null.
+	 * @param {Object} cursors The cursors keyed by id.
+	 * @param {Array} rules The ordered selector to cursor rules.
+	 * @return {void}
 	 */
-	PointerEngine.prototype._resolveState = function () {
-		if ( this.forcedState ) {
-			return this.forcedState;
-		}
-		return this.hovering ? 'hover' : 'normal';
+	PointerEngine.prototype.setFront = function ( globalCursor, cursors, rules ) {
+		this.globalCursor = globalCursor || null;
+		this.cursors = cursors || {};
+		this.rules = rules || [];
+		this.forcedState = null;
+		this._refresh();
 	};
 
 	/**
-	 * Apply the current cursor's styling for the resolved state.
+	 * Resolve which cursor and which state apply for what sits under the pointer.
+	 *
+	 * Rules are evaluated in order and the first match wins, fully swapping the
+	 * active cursor. With no match the global cursor applies, which may be null.
+	 * The state (normal or hover) is then resolved from the active cursor's own
+	 * hover selector.
+	 *
+	 * @param {HTMLElement|null} target The element under the pointer.
+	 * @return {Object} An object with cursor and state.
+	 */
+	PointerEngine.prototype._resolve = function ( target ) {
+		var active = this.globalCursor;
+
+		// First matching rule wins.
+		if ( target && target.closest && this.rules && this.rules.length ) {
+			for ( var i = 0; i < this.rules.length; i++ ) {
+				var rule = this.rules[ i ];
+				if ( ! rule || ! rule.selector ) {
+					continue;
+				}
+				var matched = false;
+				try {
+					matched = !! target.closest( rule.selector );
+				} catch ( err ) {
+					matched = false;
+				}
+				if ( matched ) {
+					var mapped = this.cursors[ rule.cursorId ];
+					if ( mapped ) {
+						active = mapped;
+						break;
+					}
+				}
+			}
+		}
+
+		// Resolve the internal state of the active cursor.
+		var state = this.forcedState;
+		if ( ! state ) {
+			var hov = false;
+			var sel = ( active && active.hoverSelector ) ? active.hoverSelector : '';
+			if ( sel && target && target.closest ) {
+				try {
+					hov = !! target.closest( sel );
+				} catch ( err2 ) {
+					hov = false;
+				}
+			}
+			state = hov ? 'hover' : 'normal';
+		}
+
+		return { cursor: active, state: state };
+	};
+
+	/**
+	 * Re-resolve and apply styling for the last known pointer target. Used when
+	 * the configuration changes rather than the pointer.
 	 *
 	 * @return {void}
 	 */
-	PointerEngine.prototype._applyState = function () {
-		if ( ! this.cursor ) {
-			return;
+	PointerEngine.prototype._refresh = function () {
+		var res = this._resolve( this.lastTarget );
+		this.activeCursor = res.cursor;
+		this.state = res.state;
+		if ( res.cursor ) {
+			this.shape.apply( res.cursor, res.state );
+		} else if ( ! this.autoHide ) {
+			this.setVisible( false );
 		}
-		this.state = this._resolveState();
-		this.shape.apply( this.cursor, this.state );
 	};
 
 	/**
-	 * The selector that triggers this cursor's own internal hover state.
-	 *
-	 * @return {string} The hover selector, or an empty string.
-	 */
-	PointerEngine.prototype._hoverSelector = function () {
-		return ( this.cursor && this.cursor.hoverSelector ) ? this.cursor.hoverSelector : '';
-	};
-
-	/**
-	 * Handle pointer movement: update the target, hover state and start the loop.
+	 * Handle pointer movement: update the target, swap or restyle the cursor as
+	 * needed, then start the loop.
 	 *
 	 * @param {MouseEvent} e The mouse event.
 	 * @return {void}
 	 */
 	PointerEngine.prototype._onMove = function ( e ) {
-		if ( ! this.cursor ) {
+		// Nothing can apply if there is neither a global cursor nor any rules.
+		if ( ! this.globalCursor && ( ! this.rules || ! this.rules.length ) ) {
 			return;
 		}
 
@@ -394,35 +460,40 @@
 			x = e.clientX;
 			y = e.clientY;
 		}
-
 		this.tx = x;
 		this.ty = y;
 
-		// Snap on first sighting so the cursor does not fly in from a corner.
+		this.lastTarget = e.target;
+		var res = this._resolve( e.target );
+
+		// Full swap when the active cursor changes, restyle when only the
+		// internal state changes.
+		if ( res.cursor !== this.activeCursor ) {
+			this.activeCursor = res.cursor;
+			this.state = res.state;
+			if ( res.cursor ) {
+				this.shape.apply( res.cursor, res.state );
+			}
+		} else if ( res.cursor && res.state !== this.state ) {
+			this.state = res.state;
+			this.shape.apply( res.cursor, res.state );
+		}
+
+		// No cursor applies here and there is no global, so show nothing.
+		if ( ! res.cursor ) {
+			this.setVisible( false );
+			this.placed = false;
+			return;
+		}
+
+		// Snap on first sighting (or after being hidden) to avoid a corner flash.
 		if ( ! this.placed ) {
 			this.ox = x;
 			this.oy = y;
 			this.placed = true;
 		}
 
-		// Reveal the cursor once the pointer has actually moved.
 		this.setVisible( true );
-
-		// Update hover from whatever sits under the pointer.
-		var sel = this._hoverSelector();
-		var nowHover = false;
-		if ( sel && e.target && e.target.closest ) {
-			try {
-				nowHover = !! e.target.closest( sel );
-			} catch ( err ) {
-				nowHover = false;
-			}
-		}
-		if ( nowHover !== this.hovering ) {
-			this.hovering = nowHover;
-			this._applyState();
-		}
-
 		this._start();
 	};
 
@@ -432,7 +503,7 @@
 	 * @return {void}
 	 */
 	PointerEngine.prototype._onEnter = function () {
-		if ( this.cursor ) {
+		if ( this.globalCursor ) {
 			this.setVisible( true );
 		}
 	};
@@ -556,9 +627,11 @@
 		var cursors = config.cursors || {};
 		var globalId = config.globalCursorId || null;
 		var globalCursor = ( globalId && cursors[ globalId ] ) ? cursors[ globalId ] : null;
+		var rules = config.rules || [];
 
-		// Nothing to run on this page.
-		if ( ! globalCursor ) {
+		// Nothing to run on this page if there is neither a global cursor nor
+		// any class rules.
+		if ( ! globalCursor && ! rules.length ) {
 			return;
 		}
 
@@ -571,14 +644,16 @@
 				document.documentElement.classList.add( 'kdna-cc-no-native' );
 			}
 
-			// One engine, over the whole document, in viewport coordinates.
+			// One engine, over the whole document, in viewport coordinates. It
+			// uses event delegation: a single mousemove listener on document and
+			// element.closest on the target to evaluate the rules.
 			var engine = new PointerEngine( {
 				mount: document.body,
 				host: document,
 				local: false,
 				autoHide: false
 			} );
-			engine.update( globalCursor, null );
+			engine.setFront( globalCursor, cursors, rules );
 
 			// Keep a reference so later stages can update or tear it down.
 			KdnaCC._frontend = engine;

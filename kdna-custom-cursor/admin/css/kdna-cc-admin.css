@@ -364,6 +364,70 @@
 }
 
 /* ---------------------------------------------------------------------- */
+/* Assignment and rules                                                   */
+/* ---------------------------------------------------------------------- */
+
+.kdna-cc-field-block {
+	margin-bottom: 24px;
+	padding-bottom: 20px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.kdna-cc-field-block h3 {
+	margin: 0 0 4px;
+}
+
+.kdna-cc-rules {
+	margin: 12px 0;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.kdna-cc-rule-row {
+	display: grid;
+	grid-template-columns: 56px 1fr 220px auto;
+	gap: 12px;
+	align-items: center;
+	padding: 10px 14px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.kdna-cc-rule-row:last-child {
+	border-bottom: none;
+}
+
+.kdna-cc-rule-head {
+	background: #f6f7f7;
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #50575e;
+}
+
+.kdna-cc-rule-order {
+	text-align: center;
+	font-weight: 600;
+	color: #50575e;
+}
+
+.kdna-cc-rule-row input[type="text"],
+.kdna-cc-rule-row select {
+	width: 100%;
+	margin: 0;
+}
+
+.kdna-cc-rule-actions {
+	display: flex;
+	gap: 6px;
+}
+
+.kdna-cc-rule-actions .button-link-delete {
+	color: #b32d2e;
+}
+
+/* ---------------------------------------------------------------------- */
 /* Live preview pane                                                      */
 /* ---------------------------------------------------------------------- */
 

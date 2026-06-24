@@ -78,28 +78,49 @@ class KDNA_CC_Frontend {
 	private function build_config() {
 		$settings  = KDNA_CC_Data::get_settings();
 		$global_id = isset( $settings['globalCursorId'] ) ? $settings['globalCursorId'] : null;
+		$rules_in  = ( isset( $settings['rules'] ) && is_array( $settings['rules'] ) ) ? $settings['rules'] : array();
 
-		// Stage 3 only runs the optional global cursor. With none set, there is
-		// nothing to do on this page yet.
-		if ( empty( $global_id ) ) {
-			return null;
+		// Collect only the cursors needed to run on this page, keyed by id.
+		$needed      = array();
+		$clean_rules = array();
+
+		// Keep the rules whose cursor still exists, preserving their order so
+		// first match wins on the front end.
+		foreach ( $rules_in as $rule ) {
+			if ( empty( $rule['selector'] ) || empty( $rule['cursorId'] ) ) {
+				continue;
+			}
+			$cursor = KDNA_CC_Data::get_cursor( $rule['cursorId'] );
+			if ( null === $cursor ) {
+				// The mapped cursor has been deleted, so drop this rule.
+				continue;
+			}
+			$needed[ $rule['cursorId'] ] = $cursor;
+			$clean_rules[]               = array(
+				'selector' => $rule['selector'],
+				'cursorId' => $rule['cursorId'],
+			);
 		}
 
-		// The referenced cursor may have been deleted since it was chosen.
-		$global = KDNA_CC_Data::get_cursor( $global_id );
-		if ( null === $global ) {
-			return null;
+		// The optional global cursor, if it still exists.
+		if ( ! empty( $global_id ) ) {
+			$global = KDNA_CC_Data::get_cursor( $global_id );
+			if ( null !== $global ) {
+				$needed[ $global_id ] = $global;
+			} else {
+				$global_id = null;
+			}
 		}
 
-		// Only ship the cursors that are needed to run on this page.
-		$cursors = array(
-			$global_id => $global,
-		);
+		// Nothing to run on this page.
+		if ( empty( $global_id ) && empty( $clean_rules ) ) {
+			return null;
+		}
 
 		return array(
-			'globalCursorId' => $global_id,
-			'cursors'        => $cursors,
-			'rules'          => array(), // populated in Stage 4.
+			'globalCursorId' => ! empty( $global_id ) ? $global_id : null,
+			'cursors'        => $needed,
+			'rules'          => $clean_rules,
 			'options'        => $settings['options'],
 		);
 	}
