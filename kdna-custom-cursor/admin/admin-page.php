@@ -91,6 +91,29 @@ function kdna_cc_blend_select( $path ) {
 	<?php
 }
 
+/**
+ * Echo a simple dropdown control bound to an Alpine path.
+ *
+ * @param string $label   The control label.
+ * @param string $path    The Alpine expression for the bound value.
+ * @param array  $options The option values.
+ * @return void
+ */
+function kdna_cc_select( $label, $path, $options ) {
+	?>
+	<div class="kdna-cc-control">
+		<label class="kdna-cc-control-label"><?php echo esc_html( $label ); ?></label>
+		<div class="kdna-cc-control-input">
+			<select x-model="<?php echo esc_attr( $path ); ?>">
+				<?php foreach ( $options as $kdna_cc_opt ) : ?>
+					<option value="<?php echo esc_attr( $kdna_cc_opt ); ?>"><?php echo esc_html( $kdna_cc_opt ); ?></option>
+				<?php endforeach; ?>
+			</select>
+		</div>
+	</div>
+	<?php
+}
+
 } // End the function_exists guard for the template helpers.
 ?>
 <div class="wrap kdna-cc-wrap" x-data="kdnaCcAdmin" x-cloak>
@@ -313,6 +336,8 @@ function kdna_cc_blend_select( $path ) {
 											<input type="number" class="small-text" x-model.number="stateBlock().zIndex">
 										</div>
 									</div>
+									<?php kdna_cc_slider( __( 'Transition duration', 'kdna-custom-cursor' ), 'stateBlock().transitionDuration', 1000, 'ms' ); ?>
+									<?php kdna_cc_select( __( 'Transition timing', 'kdna-custom-cursor' ), 'stateBlock().transitionTiming', array( 'ease', 'ease-out', 'ease-in-out', 'linear' ) ); ?>
 								</div>
 							</template>
 
@@ -356,6 +381,8 @@ function kdna_cc_blend_select( $path ) {
 											<input type="number" class="small-text" x-model.number="stateBlock().zIndex">
 										</div>
 									</div>
+									<?php kdna_cc_slider( __( 'Transition duration', 'kdna-custom-cursor' ), 'stateBlock().transitionDuration', 1000, 'ms' ); ?>
+									<?php kdna_cc_select( __( 'Transition timing', 'kdna-custom-cursor' ), 'stateBlock().transitionTiming', array( 'ease', 'ease-out', 'ease-in-out', 'linear' ) ); ?>
 
 									<div class="kdna-cc-subhead"><?php esc_html_e( 'Background', 'kdna-custom-cursor' ); ?></div>
 									<div class="kdna-cc-control">
@@ -374,6 +401,7 @@ function kdna_cc_blend_select( $path ) {
 											<?php kdna_cc_slider( __( 'Height', 'kdna-custom-cursor' ), 'stateBlock().background.height', 300 ); ?>
 											<?php kdna_cc_colour( __( 'Fill', 'kdna-custom-cursor' ), 'stateBlock().background.fill' ); ?>
 											<?php kdna_cc_slider( __( 'Fill opacity', 'kdna-custom-cursor' ), 'stateBlock().background.fillOpacity', 100, '%' ); ?>
+											<?php kdna_cc_slider( __( 'Background blur', 'kdna-custom-cursor' ), 'stateBlock().background.backdropBlur', 30 ); ?>
 											<?php kdna_cc_slider( __( 'Border width', 'kdna-custom-cursor' ), 'stateBlock().background.borderWidth', 20 ); ?>
 											<?php kdna_cc_colour( __( 'Border colour', 'kdna-custom-cursor' ), 'stateBlock().background.borderColor' ); ?>
 											<div class="kdna-cc-control">
