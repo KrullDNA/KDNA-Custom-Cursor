@@ -118,6 +118,9 @@ class KDNA_CC_Admin {
 			return;
 		}
 
+		// The media library, used by the Image cursor picker.
+		wp_enqueue_media();
+
 		// Alpine.js, vendored locally and deferred so the DOM is ready first.
 		wp_enqueue_script(
 			'kdna-cc-alpine',

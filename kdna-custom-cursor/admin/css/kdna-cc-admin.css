@@ -363,6 +363,43 @@
 	border-top: 1px solid #f0f0f1;
 }
 
+/* Image and Text builders share the control row layout. */
+.kdna-cc-type-builder {
+	margin-top: 4px;
+}
+
+.kdna-cc-subhead {
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #50575e;
+	margin: 16px 0 4px;
+	padding-top: 12px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.kdna-cc-image-preview {
+	display: inline-block;
+	padding: 8px;
+	margin-bottom: 8px;
+	background: #1d2327;
+	border-radius: 4px;
+}
+
+.kdna-cc-image-preview img {
+	display: block;
+	max-width: 120px;
+	max-height: 120px;
+	object-fit: contain;
+}
+
+.kdna-cc-image-buttons {
+	display: flex;
+	gap: 8px;
+	margin: 0 0 4px;
+}
+
 /* ---------------------------------------------------------------------- */
 /* Assignment and rules                                                   */
 /* ---------------------------------------------------------------------- */

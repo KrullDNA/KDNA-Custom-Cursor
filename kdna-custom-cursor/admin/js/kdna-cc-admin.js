@@ -196,15 +196,108 @@
 				},
 
 				/**
-				 * The shape block for the state currently being edited.
+				 * The block for the state and type currently being edited.
 				 *
-				 * @return {Object|null} editing.shape or editing.hover.
+				 * For the Normal state this is the type's own block (shape, image
+				 * or text). For the Hover state it is the hover block, which
+				 * mirrors the type.
+				 *
+				 * @return {Object|null} The block being edited.
 				 */
 				stateBlock: function () {
 					if ( ! this.editing ) {
 						return null;
 					}
-					return ( 'hover' === this.editingState ) ? this.editing.hover : this.editing.shape;
+					if ( 'hover' === this.editingState ) {
+						return this.editing.hover;
+					}
+					if ( 'image' === this.editing.type ) {
+						return this.editing.image;
+					}
+					if ( 'text' === this.editing.type ) {
+						return this.editing.text;
+					}
+					return this.editing.shape;
+				},
+
+				/**
+				 * A default hover block for a type, cloned from that type's
+				 * normal block so the hover state starts equal to normal.
+				 *
+				 * @param {Object} cursor The cursor being edited.
+				 * @param {string} type shape, image or text.
+				 * @return {Object} The hover block.
+				 */
+				defaultHoverFor: function ( cursor, type ) {
+					if ( 'image' === type ) {
+						return clone( cursor.image );
+					}
+					if ( 'text' === type ) {
+						return clone( cursor.text );
+					}
+					return clone( cursor.shape );
+				},
+
+				/**
+				 * Switch the cursor type, making the hover block match the type.
+				 *
+				 * @param {string} type shape, image or text.
+				 */
+				setType: function ( type ) {
+					if ( ! this.editing || this.editing.type === type ) {
+						return;
+					}
+					this.editing.type = type;
+					this.editing.hover = this.defaultHoverFor( this.editing, type );
+					this.editingState = 'normal';
+				},
+
+				/**
+				 * A best effort hex value for a colour swatch.
+				 *
+				 * @param {string} value The stored colour.
+				 * @return {string} A hex colour.
+				 */
+				toHex: function ( value ) {
+					return window.KdnaCC.toHex( value );
+				},
+
+				/**
+				 * Open the WordPress media library to choose an image for the
+				 * current state's image block.
+				 */
+				pickImage: function () {
+					var self = this;
+					if ( ! window.wp || ! window.wp.media ) {
+						self.setMessage( 'The media library is not available.', 'error' );
+						return;
+					}
+					var frame = window.wp.media( {
+						title: 'Select cursor image',
+						library: { type: [ 'image' ] },
+						multiple: false,
+						button: { text: 'Use this image' }
+					} );
+					frame.on( 'select', function () {
+						var att = frame.state().get( 'selection' ).first().toJSON();
+						var block = self.stateBlock();
+						if ( block ) {
+							block.url = att.url;
+							block.attachmentId = att.id;
+						}
+					} );
+					frame.open();
+				},
+
+				/**
+				 * Clear the chosen image from the current state's image block.
+				 */
+				clearImage: function () {
+					var block = this.stateBlock();
+					if ( block ) {
+						block.url = '';
+						block.attachmentId = 0;
+					}
 				},
 
 				/**
@@ -282,11 +375,12 @@
 				 * @param {string} type shape, image or text.
 				 */
 				newCursor: function ( type ) {
-					this.editing = newShapeCursor();
-					if ( 'image' === type || 'text' === type ) {
-						// The Shape build is proven first, other types follow in Stage 5.
-						this.editing.type = type;
-					}
+					type = ( 'image' === type || 'text' === type ) ? type : 'shape';
+					var cursor = newShapeCursor();
+					cursor.type = type;
+					// Make the hover block match the chosen type.
+					cursor.hover = this.defaultHoverFor( cursor, type );
+					this.editing = cursor;
 					this.editingState = 'normal';
 					this.activeTab = 'builder';
 				},
@@ -393,7 +487,7 @@
 					if ( ! ready || ! previewEngine ) {
 						return;
 					}
-					if ( ! data || 'shape' !== data.type ) {
+					if ( ! data ) {
 						previewEngine.setVisible( false );
 						return;
 					}
@@ -411,14 +505,43 @@
 						return;
 					}
 					el.innerHTML = '';
+					el.classList.remove( 'is-placeholder' );
+					var n = window.KdnaCC.num;
 
-					if ( 'shape' !== cursor.type ) {
-						// Image and Text thumbnails arrive in Stage 5.
-						el.classList.add( 'is-placeholder' );
-						el.textContent = cursor.type;
+					// Image thumbnail: the chosen image, scaled to fit.
+					if ( 'image' === cursor.type ) {
+						if ( ! cursor.image || ! cursor.image.url ) {
+							el.classList.add( 'is-placeholder' );
+							el.textContent = 'image';
+							return;
+						}
+						var thumbImg = document.createElement( 'img' );
+						thumbImg.src = cursor.image.url;
+						thumbImg.alt = '';
+						thumbImg.style.maxWidth = '80%';
+						thumbImg.style.maxHeight = '80%';
+						thumbImg.style.objectFit = 'contain';
+						el.appendChild( thumbImg );
 						return;
 					}
-					el.classList.remove( 'is-placeholder' );
+
+					// Text thumbnail: the word or emoji, with its background, scaled.
+					if ( 'text' === cursor.type ) {
+						var textEl = document.createElement( 'div' );
+						textEl.className = 'kdna-cc-layer-text';
+						window.KdnaCC.styleText( textEl, cursor.text );
+						textEl.style.position = 'static';
+						textEl.style.display = 'inline-flex';
+						textEl.style.transition = 'none';
+						textEl.style.mixBlendMode = 'normal';
+						var hasBox = cursor.text.background && 'none' !== cursor.text.background.shape;
+						var textMax = hasBox
+							? Math.max( n( cursor.text.background.width ), n( cursor.text.background.height ), 1 )
+							: Math.max( n( cursor.text.size ) * 3, 1 );
+						textEl.style.transform = 'scale(' + Math.min( 1, 80 / textMax ) + ')';
+						el.appendChild( textEl );
+						return;
+					}
 
 					var outer = document.createElement( 'div' );
 					outer.className = 'kdna-cc-layer kdna-cc-layer-outer';

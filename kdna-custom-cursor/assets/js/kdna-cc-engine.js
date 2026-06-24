@@ -152,6 +152,87 @@
 		].join( ', ' );
 	}
 
+	/**
+	 * Apply an image layer's controls to an img element. The transform is never
+	 * set here, the loop owns it.
+	 *
+	 * @param {HTMLElement} el The img element.
+	 * @param {Object} block The image control values.
+	 * @return {void}
+	 */
+	function styleImage( el, block ) {
+		if ( ! el || ! block ) {
+			return;
+		}
+
+		// Only change the source when it differs, to avoid reloading the image.
+		var url = block.url || '';
+		if ( el.getAttribute( 'src' ) !== url ) {
+			el.setAttribute( 'src', url );
+		}
+
+		el.style.width = num( block.width, 0 ) + 'px';
+		el.style.height = num( block.height, 0 ) + 'px';
+		el.style.objectFit = 'contain';
+		el.style.mixBlendMode = block.blendMode || 'normal';
+		el.style.zIndex = intval( block.zIndex, 100 );
+		el.style.transition = 'width 150ms ease-out, height 150ms ease-out, opacity 150ms ease-out';
+	}
+
+	/**
+	 * Apply a text layer's controls to a div element, including the optional
+	 * background shape so a word can sit inside a filled circle or pill. The
+	 * transform is never set here, the loop owns it, and the display is owned by
+	 * the renderer's setVisible.
+	 *
+	 * @param {HTMLElement} el The text element.
+	 * @param {Object} block The text control values.
+	 * @return {void}
+	 */
+	function styleText( el, block ) {
+		if ( ! el || ! block ) {
+			return;
+		}
+
+		var bg = block.background || {};
+
+		if ( el.textContent !== ( block.value || '' ) ) {
+			el.textContent = block.value || '';
+		}
+
+		el.style.color = block.color || '#ffffff';
+		el.style.fontFamily = block.font ? block.font : 'inherit';
+		el.style.fontSize = num( block.size, 16 ) + 'px';
+		el.style.fontWeight = block.weight || 'normal';
+		el.style.lineHeight = '1';
+		el.style.whiteSpace = 'nowrap';
+		el.style.alignItems = 'center';
+		el.style.justifyContent = 'center';
+		el.style.boxSizing = 'border-box';
+		el.style.mixBlendMode = block.blendMode || 'normal';
+		el.style.zIndex = intval( block.zIndex, 100 );
+
+		// The optional background box (circle or pill) the word sits inside.
+		var hasBox = bg.shape && 'none' !== bg.shape;
+		if ( hasBox ) {
+			el.style.width = num( bg.width, 0 ) + 'px';
+			el.style.height = num( bg.height, 0 ) + 'px';
+			el.style.backgroundColor = bg.fill || 'transparent';
+			el.style.borderStyle = 'solid';
+			el.style.borderWidth = num( bg.borderWidth, 0 ) + 'px';
+			el.style.borderColor = bg.borderColor || 'transparent';
+			el.style.borderRadius = cssLength( bg.borderRadius );
+		} else {
+			el.style.width = 'auto';
+			el.style.height = 'auto';
+			el.style.backgroundColor = 'transparent';
+			el.style.borderWidth = '0';
+			el.style.borderRadius = '0';
+		}
+
+		el.style.transition = 'width 150ms ease-out, height 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out, font-size 150ms ease-out';
+	}
+
 	/* --------------------------------------------------------------------- */
 	/* Shape cursor: an outer layer and an inner layer                       */
 	/* --------------------------------------------------------------------- */
@@ -244,6 +325,153 @@
 	};
 
 	/* --------------------------------------------------------------------- */
+	/* Image cursor: a single image layer                                    */
+	/* --------------------------------------------------------------------- */
+
+	/**
+	 * Create an image cursor, a single img element following the pointer.
+	 *
+	 * @param {HTMLElement} root The element to append the image to.
+	 * @param {string} position absolute in the preview or fixed on the front end.
+	 * @constructor
+	 */
+	function ImageCursor( root, position ) {
+		this.root = root;
+		this.img = document.createElement( 'img' );
+		this.img.className = 'kdna-cc-layer kdna-cc-layer-image';
+		this.img.setAttribute( 'aria-hidden', 'true' );
+		this.img.setAttribute( 'alt', '' );
+		this.img.style.position = position || 'absolute';
+		this.img.style.display = 'block';
+		root.appendChild( this.img );
+
+		// Image cursors lock to the pointer, there is no trailing ring.
+		this.velocity = 0;
+	}
+
+	/**
+	 * Apply the image cursor's styling for a state.
+	 *
+	 * @param {Object} cursor The cursor config.
+	 * @param {string} state normal or hover.
+	 * @return {void}
+	 */
+	ImageCursor.prototype.apply = function ( cursor, state ) {
+		var block = ( 'hover' === state ) ? cursor.hover : cursor.image;
+		if ( ! block || undefined === block.url ) {
+			block = cursor.image || {};
+		}
+		styleImage( this.img, block );
+		this.velocity = 0;
+	};
+
+	/**
+	 * Position the image at the pointer.
+	 *
+	 * @param {number} px Pointer x.
+	 * @param {number} py Pointer y.
+	 * @return {void}
+	 */
+	ImageCursor.prototype.place = function ( px, py ) {
+		this.img.style.transform = 'translate(' + px + 'px,' + py + 'px) translate(-50%, -50%)';
+	};
+
+	/**
+	 * Show or hide the image.
+	 *
+	 * @param {boolean} v True to show.
+	 * @return {void}
+	 */
+	ImageCursor.prototype.setVisible = function ( v ) {
+		this.img.style.display = v ? 'block' : 'none';
+	};
+
+	/**
+	 * Remove the image from the page.
+	 *
+	 * @return {void}
+	 */
+	ImageCursor.prototype.remove = function () {
+		if ( this.img.parentNode ) {
+			this.img.parentNode.removeChild( this.img );
+		}
+	};
+
+	/* --------------------------------------------------------------------- */
+	/* Text cursor: a word or emoji, with an optional background shape       */
+	/* --------------------------------------------------------------------- */
+
+	/**
+	 * Create a text cursor, a single element holding the word or emoji.
+	 *
+	 * @param {HTMLElement} root The element to append the text to.
+	 * @param {string} position absolute in the preview or fixed on the front end.
+	 * @constructor
+	 */
+	function TextCursor( root, position ) {
+		this.root = root;
+		this.el = document.createElement( 'div' );
+		this.el.className = 'kdna-cc-layer kdna-cc-layer-text';
+		this.el.setAttribute( 'aria-hidden', 'true' );
+		this.el.style.position = position || 'absolute';
+		// inline-flex shrink wraps to the word when there is no background box,
+		// and centres the word when there is one.
+		this.el.style.display = 'inline-flex';
+		root.appendChild( this.el );
+
+		// Text cursors lock to the pointer, there is no trailing ring.
+		this.velocity = 0;
+	}
+
+	/**
+	 * Apply the text cursor's styling for a state.
+	 *
+	 * @param {Object} cursor The cursor config.
+	 * @param {string} state normal or hover.
+	 * @return {void}
+	 */
+	TextCursor.prototype.apply = function ( cursor, state ) {
+		var block = ( 'hover' === state ) ? cursor.hover : cursor.text;
+		if ( ! block || undefined === block.value ) {
+			block = cursor.text || {};
+		}
+		styleText( this.el, block );
+		this.velocity = 0;
+	};
+
+	/**
+	 * Position the text at the pointer.
+	 *
+	 * @param {number} px Pointer x.
+	 * @param {number} py Pointer y.
+	 * @return {void}
+	 */
+	TextCursor.prototype.place = function ( px, py ) {
+		this.el.style.transform = 'translate(' + px + 'px,' + py + 'px) translate(-50%, -50%)';
+	};
+
+	/**
+	 * Show or hide the text.
+	 *
+	 * @param {boolean} v True to show.
+	 * @return {void}
+	 */
+	TextCursor.prototype.setVisible = function ( v ) {
+		this.el.style.display = v ? 'inline-flex' : 'none';
+	};
+
+	/**
+	 * Remove the text from the page.
+	 *
+	 * @return {void}
+	 */
+	TextCursor.prototype.remove = function () {
+		if ( this.el.parentNode ) {
+			this.el.parentNode.removeChild( this.el );
+		}
+	};
+
+	/* --------------------------------------------------------------------- */
 	/* Pointer engine: tracks the pointer and runs one rAF loop              */
 	/* --------------------------------------------------------------------- */
 
@@ -281,11 +509,18 @@
 			this.overlay.style.bottom = '0';
 			this.overlay.style.pointerEvents = 'none';
 			this.mount.appendChild( this.overlay );
-			this.shape = new ShapeCursor( this.overlay, 'absolute' );
+			this.layerParent = this.overlay;
+			this.layerPosition = 'absolute';
 		} else {
 			this.overlay = null;
-			this.shape = new ShapeCursor( this.mount, 'fixed' );
+			this.layerParent = this.mount;
+			this.layerPosition = 'fixed';
 		}
+
+		// The active renderer is created lazily and rebuilt when the cursor type
+		// changes between shape, image and text.
+		this.renderer = null;
+		this.rendererType = null;
 
 		// The optional global cursor, the map of cursors by id and the ordered
 		// list of class to cursor rules. The active cursor is whichever one
@@ -421,6 +656,47 @@
 	};
 
 	/**
+	 * Make sure the renderer matches the given cursor type, rebuilding it when
+	 * the type changes (a shape cursor swapping to a text cursor, say).
+	 *
+	 * @param {string} type shape, image or text.
+	 * @return {void}
+	 */
+	PointerEngine.prototype._ensureRenderer = function ( type ) {
+		if ( this.rendererType === type && this.renderer ) {
+			return;
+		}
+		if ( this.renderer ) {
+			this.renderer.remove();
+		}
+		if ( 'image' === type ) {
+			this.renderer = new ImageCursor( this.layerParent, this.layerPosition );
+		} else if ( 'text' === type ) {
+			this.renderer = new TextCursor( this.layerParent, this.layerPosition );
+		} else {
+			this.renderer = new ShapeCursor( this.layerParent, this.layerPosition );
+		}
+		this.rendererType = type;
+
+		// On the front end the new renderer must match the current visibility.
+		if ( ! this.overlay ) {
+			this.renderer.setVisible( this.visible );
+		}
+	};
+
+	/**
+	 * Build the right renderer for the cursor and apply its styling.
+	 *
+	 * @param {Object} cursor The cursor config.
+	 * @param {string} state normal or hover.
+	 * @return {void}
+	 */
+	PointerEngine.prototype._applyActive = function ( cursor, state ) {
+		this._ensureRenderer( cursor.type || 'shape' );
+		this.renderer.apply( cursor, state );
+	};
+
+	/**
 	 * Re-resolve and apply styling for the last known pointer target. Used when
 	 * the configuration changes rather than the pointer.
 	 *
@@ -431,7 +707,7 @@
 		this.activeCursor = res.cursor;
 		this.state = res.state;
 		if ( res.cursor ) {
-			this.shape.apply( res.cursor, res.state );
+			this._applyActive( res.cursor, res.state );
 		} else if ( ! this.autoHide ) {
 			this.setVisible( false );
 		}
@@ -472,11 +748,11 @@
 			this.activeCursor = res.cursor;
 			this.state = res.state;
 			if ( res.cursor ) {
-				this.shape.apply( res.cursor, res.state );
+				this._applyActive( res.cursor, res.state );
 			}
 		} else if ( res.cursor && res.state !== this.state ) {
 			this.state = res.state;
-			this.shape.apply( res.cursor, res.state );
+			this._applyActive( res.cursor, res.state );
 		}
 
 		// No cursor applies here and there is no global, so show nothing.
@@ -537,10 +813,15 @@
 	 * @return {void}
 	 */
 	PointerEngine.prototype._loop = function () {
-		var catchUp = clamp( 1 - this.shape.velocity, 0.06, 1 );
+		if ( ! this.renderer ) {
+			this.running = false;
+			return;
+		}
+
+		var catchUp = clamp( 1 - this.renderer.velocity, 0.06, 1 );
 		this.ox += ( this.tx - this.ox ) * catchUp;
 		this.oy += ( this.ty - this.oy ) * catchUp;
-		this.shape.place( this.tx, this.ty, this.ox, this.oy );
+		this.renderer.place( this.tx, this.ty, this.ox, this.oy );
 
 		var dx = this.tx - this.ox;
 		var dy = this.ty - this.oy;
@@ -548,7 +829,7 @@
 			// Settled. Snap exactly and stop until the next movement.
 			this.ox = this.tx;
 			this.oy = this.ty;
-			this.shape.place( this.tx, this.ty, this.ox, this.oy );
+			this.renderer.place( this.tx, this.ty, this.ox, this.oy );
 			this.running = false;
 			return;
 		}
@@ -566,8 +847,8 @@
 		this.visible = v;
 		if ( this.overlay ) {
 			this.overlay.style.display = v ? 'block' : 'none';
-		} else {
-			this.shape.setVisible( v );
+		} else if ( this.renderer ) {
+			this.renderer.setVisible( v );
 		}
 	};
 
@@ -585,7 +866,9 @@
 		if ( this.rafId ) {
 			cancelAnimationFrame( this.rafId );
 		}
-		this.shape.remove();
+		if ( this.renderer ) {
+			this.renderer.remove();
+		}
 		if ( this.overlay && this.overlay.parentNode ) {
 			this.overlay.parentNode.removeChild( this.overlay );
 		}
@@ -666,6 +949,8 @@
 
 	KdnaCC.PointerEngine = PointerEngine;
 	KdnaCC.styleLayer = styleLayer;
+	KdnaCC.styleImage = styleImage;
+	KdnaCC.styleText = styleText;
 	KdnaCC.cssLength = cssLength;
 	KdnaCC.toHex = toHex;
 	KdnaCC.num = num;

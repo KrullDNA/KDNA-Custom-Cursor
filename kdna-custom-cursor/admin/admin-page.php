@@ -4,9 +4,9 @@
  *
  * A single page with three tabs and a sticky live preview pane on the right.
  * The working state lives in the Alpine.js component kdnaCcAdmin, defined in
- * admin/js/kdna-cc-admin.js. Stage 2 fills in the Library and the Shape builder
- * and wires the live preview to the shared engine. The Assignment tab arrives
- * in Stage 4 and Stage 6.
+ * admin/js/kdna-cc-admin.js. The builder supports the Shape, Image and Text
+ * cursor types, each with a Normal and Hover state, and the live preview is
+ * driven by the shared engine.
  *
  * @package KDNA_Custom_Cursor
  */
@@ -15,6 +15,82 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// Define the small markup helpers once.
+if ( ! function_exists( 'kdna_cc_slider' ) ) {
+
+/**
+ * Echo the markup for one numeric slider control with a paired number entry.
+ *
+ * A small local helper so the Image and Text builders stay readable. The path
+ * is an Alpine expression that resolves to the value, for example
+ * stateBlock().width or stateBlock().background.height.
+ *
+ * @param string $label The control label.
+ * @param string $path  The Alpine expression for the bound value.
+ * @param int    $max   The slider maximum.
+ * @return void
+ */
+function kdna_cc_slider( $label, $path, $max ) {
+	?>
+	<div class="kdna-cc-control">
+		<label class="kdna-cc-control-label"><?php echo esc_html( $label ); ?></label>
+		<div class="kdna-cc-control-input">
+			<div class="kdna-cc-range">
+				<input type="range" min="0" max="<?php echo esc_attr( $max ); ?>" step="1" x-model.number="<?php echo esc_attr( $path ); ?>">
+				<input type="number" class="small-text" min="0" max="<?php echo esc_attr( $max ); ?>" x-model.number="<?php echo esc_attr( $path ); ?>">
+				<span class="kdna-cc-unit">px</span>
+			</div>
+		</div>
+	</div>
+	<?php
+}
+
+/**
+ * Echo the markup for a colour control (a swatch plus a free text field).
+ *
+ * @param string $label The control label.
+ * @param string $path  The Alpine expression for the bound colour.
+ * @return void
+ */
+function kdna_cc_colour( $label, $path ) {
+	?>
+	<div class="kdna-cc-control">
+		<label class="kdna-cc-control-label"><?php echo esc_html( $label ); ?></label>
+		<div class="kdna-cc-control-input">
+			<div class="kdna-cc-colour">
+				<input type="color" :value="toHex(<?php echo esc_attr( $path ); ?>)" @input="<?php echo esc_attr( $path ); ?> = $event.target.value">
+				<input type="text" class="regular-text" x-model="<?php echo esc_attr( $path ); ?>" placeholder="<?php esc_attr_e( 'hex, rgba or transparent', 'kdna-custom-cursor' ); ?>">
+			</div>
+		</div>
+	</div>
+	<?php
+}
+
+/**
+ * Echo the markup for a blend mode dropdown bound to an Alpine path.
+ *
+ * @param string $path The Alpine expression for the bound value.
+ * @return void
+ */
+function kdna_cc_blend_select( $path ) {
+	?>
+	<div class="kdna-cc-control">
+		<label class="kdna-cc-control-label"><?php esc_html_e( 'Blending mode', 'kdna-custom-cursor' ); ?></label>
+		<div class="kdna-cc-control-input">
+			<select x-model="<?php echo esc_attr( $path ); ?>">
+				<option value="normal">normal</option>
+				<option value="difference">difference</option>
+				<option value="multiply">multiply</option>
+				<option value="screen">screen</option>
+				<option value="exclusion">exclusion</option>
+			</select>
+		</div>
+	</div>
+	<?php
+}
+
+} // End the function_exists guard for the template helpers.
 ?>
 <div class="wrap kdna-cc-wrap" x-data="kdnaCcAdmin" x-cloak>
 
@@ -45,9 +121,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<section class="kdna-cc-panel" x-show="activeTab === 'library'">
 					<div class="kdna-cc-panel-top">
 						<h2><?php esc_html_e( 'Cursor Library', 'kdna-custom-cursor' ); ?></h2>
-						<button type="button" class="button button-primary" @click="newCursor('shape')">
-							<?php esc_html_e( 'Create New Cursor', 'kdna-custom-cursor' ); ?>
-						</button>
+						<div class="kdna-cc-segment">
+							<button type="button" @click="newCursor('shape')"><?php esc_html_e( 'New Shape', 'kdna-custom-cursor' ); ?></button>
+							<button type="button" @click="newCursor('image')"><?php esc_html_e( 'New Image', 'kdna-custom-cursor' ); ?></button>
+							<button type="button" @click="newCursor('text')"><?php esc_html_e( 'New Text', 'kdna-custom-cursor' ); ?></button>
+						</div>
 					</div>
 
 					<p class="kdna-cc-placeholder" x-show="cursors.length === 0">
@@ -105,33 +183,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 								<div class="kdna-cc-type-select">
 									<span class="kdna-cc-field-label"><?php esc_html_e( 'Type', 'kdna-custom-cursor' ); ?></span>
 									<div class="kdna-cc-segment">
-										<button type="button" :class="{ active: editing.type === 'shape' }" @click="editing.type = 'shape'"><?php esc_html_e( 'Shape', 'kdna-custom-cursor' ); ?></button>
-										<button type="button" :class="{ active: editing.type === 'image' }" @click="editing.type = 'image'"><?php esc_html_e( 'Image', 'kdna-custom-cursor' ); ?></button>
-										<button type="button" :class="{ active: editing.type === 'text' }" @click="editing.type = 'text'"><?php esc_html_e( 'Text', 'kdna-custom-cursor' ); ?></button>
+										<button type="button" :class="{ active: editing.type === 'shape' }" @click="setType('shape')"><?php esc_html_e( 'Shape', 'kdna-custom-cursor' ); ?></button>
+										<button type="button" :class="{ active: editing.type === 'image' }" @click="setType('image')"><?php esc_html_e( 'Image', 'kdna-custom-cursor' ); ?></button>
+										<button type="button" :class="{ active: editing.type === 'text' }" @click="setType('text')"><?php esc_html_e( 'Text', 'kdna-custom-cursor' ); ?></button>
 									</div>
 								</div>
 							</div>
 
-							<?php // Image and Text builders arrive in Stage 5. ?>
-							<template x-if="editing.type !== 'shape'">
-								<p class="kdna-cc-placeholder">
-									<?php esc_html_e( 'The Image and Text builders arrive in Stage 5. For now, build a Shape cursor.', 'kdna-custom-cursor' ); ?>
-								</p>
-							</template>
+							<?php // Normal and Hover state toggle, shared by every type. ?>
+							<div class="kdna-cc-state-toggle">
+								<span class="kdna-cc-field-label"><?php esc_html_e( 'Editing state', 'kdna-custom-cursor' ); ?></span>
+								<div class="kdna-cc-segment">
+									<button type="button" :class="{ active: editingState === 'normal' }" @click="editingState = 'normal'"><?php esc_html_e( 'Normal', 'kdna-custom-cursor' ); ?></button>
+									<button type="button" :class="{ active: editingState === 'hover' }" @click="editingState = 'hover'"><?php esc_html_e( 'Hover', 'kdna-custom-cursor' ); ?></button>
+								</div>
+							</div>
 
+							<?php // Shape builder: collapsible Inner Circle and Outer Circle panels. ?>
 							<template x-if="editing.type === 'shape'">
 								<div class="kdna-cc-shape-builder">
-
-									<?php // Normal and Hover state toggle. ?>
-									<div class="kdna-cc-state-toggle">
-										<span class="kdna-cc-field-label"><?php esc_html_e( 'Editing state', 'kdna-custom-cursor' ); ?></span>
-										<div class="kdna-cc-segment">
-											<button type="button" :class="{ active: editingState === 'normal' }" @click="editingState = 'normal'"><?php esc_html_e( 'Normal', 'kdna-custom-cursor' ); ?></button>
-											<button type="button" :class="{ active: editingState === 'hover' }" @click="editingState = 'hover'"><?php esc_html_e( 'Hover', 'kdna-custom-cursor' ); ?></button>
-										</div>
-									</div>
-
-									<?php // Inner Circle and Outer Circle panels, built from one loop. ?>
 									<template x-for="layerKey in ['inner', 'outer']" :key="layerKey">
 										<div class="kdna-cc-panel-group">
 											<button type="button" class="kdna-cc-panel-head" @click="togglePanel(layerKey)">
@@ -144,7 +214,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 														<label class="kdna-cc-control-label" x-text="ctrl.label"></label>
 														<div class="kdna-cc-control-input">
 
-															<?php // Slider with a paired numeric entry. ?>
 															<template x-if="ctrl.type === 'range'">
 																<div class="kdna-cc-range">
 																	<input type="range" :min="ctrl.min" :max="ctrl.max" :step="ctrl.step"
@@ -157,14 +226,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 																</div>
 															</template>
 
-															<?php // Plain numeric entry. ?>
 															<template x-if="ctrl.type === 'number'">
 																<input type="number" class="small-text"
 																	:value="getVal(layerKey, ctrl.key)"
 																	@input="setVal(layerKey, ctrl, $event.target.value)">
 															</template>
 
-															<?php // Dropdown for the fixed option lists. ?>
 															<template x-if="ctrl.type === 'select'">
 																<select :value="getVal(layerKey, ctrl.key)" @change="setVal(layerKey, ctrl, $event.target.value)">
 																	<template x-for="opt in ctrl.options" :key="opt">
@@ -173,14 +240,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 																</select>
 															</template>
 
-															<?php // Free text, for border radius and backdrop filter. ?>
 															<template x-if="ctrl.type === 'text'">
 																<input type="text" class="regular-text" :placeholder="ctrl.placeholder"
 																	:value="getVal(layerKey, ctrl.key)"
 																	@input="setVal(layerKey, ctrl, $event.target.value)">
 															</template>
 
-															<?php // Colour swatch plus a text field for named, hex, rgba or transparent. ?>
 															<template x-if="ctrl.type === 'colour'">
 																<div class="kdna-cc-colour">
 																	<input type="color" :value="hexFor(layerKey, ctrl.key)"
@@ -197,18 +262,115 @@ if ( ! defined( 'ABSPATH' ) ) {
 											</div>
 										</div>
 									</template>
+								</div>
+							</template>
 
-									<?php // The cursor's own internal hover trigger. ?>
+							<?php // Image builder: a media library picker plus size, blend and z-index. ?>
+							<template x-if="editing.type === 'image'">
+								<div class="kdna-cc-type-builder">
 									<div class="kdna-cc-control kdna-cc-control-wide">
-										<label class="kdna-cc-control-label"><?php esc_html_e( 'Internal hover trigger', 'kdna-custom-cursor' ); ?></label>
+										<label class="kdna-cc-control-label"><?php esc_html_e( 'Image', 'kdna-custom-cursor' ); ?></label>
 										<div class="kdna-cc-control-input">
-											<input type="text" class="regular-text" x-model="editing.hoverSelector" placeholder="a, button">
-											<p class="description"><?php esc_html_e( 'The selector that switches this cursor to its own Hover state, for example a, button.', 'kdna-custom-cursor' ); ?></p>
+											<div class="kdna-cc-image-preview" x-show="stateBlock().url">
+												<img :src="stateBlock().url" alt="">
+											</div>
+											<p class="kdna-cc-image-buttons">
+												<button type="button" class="button" @click="pickImage()"><?php esc_html_e( 'Select image', 'kdna-custom-cursor' ); ?></button>
+												<button type="button" class="button" x-show="stateBlock().url" @click="clearImage()"><?php esc_html_e( 'Remove image', 'kdna-custom-cursor' ); ?></button>
+											</p>
+											<p class="description"><?php esc_html_e( 'A PNG or SVG from the media library.', 'kdna-custom-cursor' ); ?></p>
+										</div>
+									</div>
+									<?php kdna_cc_slider( __( 'Width', 'kdna-custom-cursor' ), 'stateBlock().width', 400 ); ?>
+									<?php kdna_cc_slider( __( 'Height', 'kdna-custom-cursor' ), 'stateBlock().height', 400 ); ?>
+									<?php kdna_cc_blend_select( 'stateBlock().blendMode' ); ?>
+									<div class="kdna-cc-control">
+										<label class="kdna-cc-control-label"><?php esc_html_e( 'Z-index', 'kdna-custom-cursor' ); ?></label>
+										<div class="kdna-cc-control-input">
+											<input type="number" class="small-text" x-model.number="stateBlock().zIndex">
+										</div>
+									</div>
+								</div>
+							</template>
+
+							<?php // Text builder: a word or emoji with an optional background shape. ?>
+							<template x-if="editing.type === 'text'">
+								<div class="kdna-cc-type-builder">
+									<div class="kdna-cc-control">
+										<label class="kdna-cc-control-label"><?php esc_html_e( 'Text or emoji', 'kdna-custom-cursor' ); ?></label>
+										<div class="kdna-cc-control-input">
+											<input type="text" class="regular-text" x-model="stateBlock().value" placeholder="<?php esc_attr_e( 'View', 'kdna-custom-cursor' ); ?>">
+										</div>
+									</div>
+									<div class="kdna-cc-control">
+										<label class="kdna-cc-control-label"><?php esc_html_e( 'Font family', 'kdna-custom-cursor' ); ?></label>
+										<div class="kdna-cc-control-input">
+											<input type="text" class="regular-text" x-model="stateBlock().font" placeholder="<?php esc_attr_e( 'e.g. Inter, sans-serif', 'kdna-custom-cursor' ); ?>">
+										</div>
+									</div>
+									<?php kdna_cc_slider( __( 'Font size', 'kdna-custom-cursor' ), 'stateBlock().size', 120 ); ?>
+									<div class="kdna-cc-control">
+										<label class="kdna-cc-control-label"><?php esc_html_e( 'Font weight', 'kdna-custom-cursor' ); ?></label>
+										<div class="kdna-cc-control-input">
+											<select x-model="stateBlock().weight">
+												<option value="normal">normal</option>
+												<option value="300">300</option>
+												<option value="400">400</option>
+												<option value="500">500</option>
+												<option value="600">600</option>
+												<option value="700">700</option>
+												<option value="800">800</option>
+												<option value="900">900</option>
+												<option value="bold">bold</option>
+											</select>
+										</div>
+									</div>
+									<?php kdna_cc_colour( __( 'Colour', 'kdna-custom-cursor' ), 'stateBlock().color' ); ?>
+									<?php kdna_cc_blend_select( 'stateBlock().blendMode' ); ?>
+									<div class="kdna-cc-control">
+										<label class="kdna-cc-control-label"><?php esc_html_e( 'Z-index', 'kdna-custom-cursor' ); ?></label>
+										<div class="kdna-cc-control-input">
+											<input type="number" class="small-text" x-model.number="stateBlock().zIndex">
 										</div>
 									</div>
 
+									<div class="kdna-cc-subhead"><?php esc_html_e( 'Background', 'kdna-custom-cursor' ); ?></div>
+									<div class="kdna-cc-control">
+										<label class="kdna-cc-control-label"><?php esc_html_e( 'Shape', 'kdna-custom-cursor' ); ?></label>
+										<div class="kdna-cc-control-input">
+											<select x-model="stateBlock().background.shape">
+												<option value="none"><?php esc_html_e( 'None', 'kdna-custom-cursor' ); ?></option>
+												<option value="circle"><?php esc_html_e( 'Circle', 'kdna-custom-cursor' ); ?></option>
+												<option value="pill"><?php esc_html_e( 'Pill', 'kdna-custom-cursor' ); ?></option>
+											</select>
+										</div>
+									</div>
+									<template x-if="stateBlock().background.shape !== 'none'">
+										<div>
+											<?php kdna_cc_slider( __( 'Width', 'kdna-custom-cursor' ), 'stateBlock().background.width', 300 ); ?>
+											<?php kdna_cc_slider( __( 'Height', 'kdna-custom-cursor' ), 'stateBlock().background.height', 300 ); ?>
+											<?php kdna_cc_colour( __( 'Fill', 'kdna-custom-cursor' ), 'stateBlock().background.fill' ); ?>
+											<?php kdna_cc_slider( __( 'Border width', 'kdna-custom-cursor' ), 'stateBlock().background.borderWidth', 20 ); ?>
+											<?php kdna_cc_colour( __( 'Border colour', 'kdna-custom-cursor' ), 'stateBlock().background.borderColor' ); ?>
+											<div class="kdna-cc-control">
+												<label class="kdna-cc-control-label"><?php esc_html_e( 'Border radius', 'kdna-custom-cursor' ); ?></label>
+												<div class="kdna-cc-control-input">
+													<input type="text" class="regular-text" x-model="stateBlock().background.borderRadius" placeholder="100% or 12px">
+												</div>
+											</div>
+										</div>
+									</template>
 								</div>
 							</template>
+
+							<?php // The cursor's own internal hover trigger, shared by every type. ?>
+							<div class="kdna-cc-control kdna-cc-control-wide">
+								<label class="kdna-cc-control-label"><?php esc_html_e( 'Internal hover trigger', 'kdna-custom-cursor' ); ?></label>
+								<div class="kdna-cc-control-input">
+									<input type="text" class="regular-text" x-model="editing.hoverSelector" placeholder="a, button">
+									<p class="description"><?php esc_html_e( 'The selector that switches this cursor to its own Hover state, for example a, button.', 'kdna-custom-cursor' ); ?></p>
+								</div>
+							</div>
 
 							<div class="kdna-cc-builder-actions">
 								<button type="button" class="button button-primary" @click="saveCursor()" :disabled="saving">
