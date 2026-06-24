@@ -130,19 +130,39 @@ class KDNA_CC_Admin {
 			)
 		);
 
-		// Our admin stylesheet.
+		// The shared cursor engine, also used by the front end, so the live
+		// preview matches front-end output exactly.
+		wp_enqueue_script(
+			'kdna-cc-engine',
+			KDNA_CC_URL . 'assets/js/kdna-cc-engine.js',
+			array(),
+			KDNA_CC_VERSION,
+			array( 'in_footer' => true )
+		);
+
+		// The front-end cursor layer styles, loaded here too so the preview
+		// uses the same base styles as the front end.
 		wp_enqueue_style(
-			'kdna-cc-admin',
-			KDNA_CC_URL . 'admin/css/kdna-cc-admin.css',
+			'kdna-cc-cursor',
+			KDNA_CC_URL . 'assets/css/kdna-cc-cursor.css',
 			array(),
 			KDNA_CC_VERSION
 		);
 
-		// Our admin script. It registers the Alpine component before Alpine boots.
+		// Our admin stylesheet.
+		wp_enqueue_style(
+			'kdna-cc-admin',
+			KDNA_CC_URL . 'admin/css/kdna-cc-admin.css',
+			array( 'kdna-cc-cursor' ),
+			KDNA_CC_VERSION
+		);
+
+		// Our admin script. It registers the Alpine component before Alpine
+		// boots, and depends on the engine being loaded first.
 		wp_enqueue_script(
 			'kdna-cc-admin',
 			KDNA_CC_URL . 'admin/js/kdna-cc-admin.js',
-			array(),
+			array( 'kdna-cc-engine' ),
 			KDNA_CC_VERSION,
 			array( 'in_footer' => true )
 		);

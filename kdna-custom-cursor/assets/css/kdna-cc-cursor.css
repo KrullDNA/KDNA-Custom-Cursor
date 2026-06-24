@@ -1,9 +1,27 @@
 /*
  * Front-end cursor layer styles for KDNA Custom Cursor.
  *
- * Styles the cursor layers that the engine adds to the page. Implemented in
- * Stage 3 alongside the front-end engine. Placeholder for Stage 1 so the file
- * structure in the brief is in place. Not enqueued until Stage 3.
+ * These are the base styles for the cursor layers the engine adds to the page.
+ * The same file is loaded in the admin so the live preview matches the front
+ * end exactly. Per-cursor styling (size, colour, border, blend and so on) is
+ * applied inline by the engine, this file only handles the structural basics.
  *
  * UK English throughout. No em dashes.
  */
+
+/* The overlay the engine creates to hold the cursor layers. */
+.kdna-cc-cursor-root {
+	pointer-events: none;
+}
+
+/* A single cursor layer (inner or outer). Position comes from transform. */
+.kdna-cc-layer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	box-sizing: border-box;
+	pointer-events: none;
+	border-style: solid;
+	border-width: 0;
+	will-change: transform;
+}
