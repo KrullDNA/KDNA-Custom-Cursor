@@ -4,7 +4,7 @@ Tags: cursor, custom cursor, elementor, mouse, pointer
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ All seven build stages are complete.
 When implemented, the front-end engine respects prefers-reduced-motion by falling back to the native cursor, marks cursor layers as aria-hidden, and never intercepts clicks. The engine does not initialise on touch or coarse-pointer devices.
 
 == Changelog ==
+
+= 1.0.1 =
+* Text cursors gain a Fill opacity slider for the background, so the circle or pill can have a coloured transparency. The Fill field also accepts rgba values and eight digit hex colours for the same effect, and the engine applies the opacity as an alpha channel without affecting the text or the border.
 
 = 1.0.0 =
 * Stage 7. Optional Elementor integration in class-kdna-cc-elementor.php. A Cursor dropdown is added to the Advanced tab of Elementor sections, columns, containers and widgets, listing the saved cursors. Choosing one applies that cursor to the element without typing a class, by adding a generated kdna-cc-bound class when the element renders and handing the front-end engine a matching internal rule that sits above the manual class rules. The Elementor hooks are registered at load time, not inside elementor/loaded, and the class is added to the element's outer wrapper so it works whether or not the widget has an inner wrapper under the e_optimized_markup experiment.

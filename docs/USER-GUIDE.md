@@ -2,7 +2,7 @@
 
 ### User Guide
 
-Version 1.0.0
+Version 1.0.1
 
 A custom cursor builder for WordPress and Elementor, with a per-class assignment model. Build animated mouse cursors in the WordPress admin and assign them to specific CSS classes on your pages, with an optional site-wide global cursor.
 
@@ -143,8 +143,9 @@ To build a View label:
 3. Set the **Font size**, **Font weight** and **Colour** of the text. White text reads well on a dark circle.
 4. Under **Background**, set **Shape** to **Circle**.
 5. Set the circle **Width** and **Height** equal, for example `72` by `72`, and choose a **Fill** colour.
-6. Optionally add a **Border width** and **Border colour**, and adjust the **Border radius**. A circle uses `100%`. For a pill, use a wider Width than Height and a large radius.
-7. Name it **View** and select **Save Cursor**.
+6. To give the fill a coloured transparency, drag the **Fill opacity** slider beneath the fill. `100` is solid and `0` is fully see-through. The text inside stays solid, so only the background fades. You can also type an rgba value or an eight digit hex into the Fill field for the same effect, for example `rgba(122,127,135,0.5)` or `#7a7f8780`.
+7. Optionally add a **Border width** and **Border colour**, and adjust the **Border radius**. A circle uses `100%`. For a pill, use a wider Width than Height and a large radius.
+8. Name it **View** and select **Save Cursor**.
 
 To make the matching **Scroll** cursor, the quickest route is to **Duplicate** the View cursor in the Library, then change its text to `Scroll`. The two starter presets already include both.
 
@@ -193,6 +194,7 @@ The Shape builder exposes the full set of controls for the inner and the outer l
 | --- | --- | --- |
 | Width and Height | inner, outer, image, text background | Pixel sliders with a paired numeric entry |
 | Colour | inner, outer, text | Named, hex or rgba, plus transparent |
+| Fill opacity | text background | 0 to 100, gives the background fill a coloured transparency |
 | Border width and colour | inner, outer, text background | Pixels and a colour |
 | Border radius | inner, outer, text background | `100%` gives a circle, or a pixel value |
 | Transition duration and timing | shape layers | Milliseconds, with ease, ease-out, ease-in-out or linear |
@@ -385,4 +387,4 @@ To remove the plugin completely, delete it from the **Plugins** screen. Deletion
 
 ---
 
-*KDNA Custom Cursor, version 1.0.0. Built for WordPress and Elementor.*
+*KDNA Custom Cursor, version 1.0.1. Built for WordPress and Elementor.*

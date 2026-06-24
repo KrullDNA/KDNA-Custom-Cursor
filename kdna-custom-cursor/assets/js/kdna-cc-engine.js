@@ -96,6 +96,10 @@
 			return '#000000';
 		}
 		var s = String( value ).trim();
+		// Drop the alpha from an eight digit hex so the swatch shows the colour.
+		if ( /^#[0-9a-fA-F]{8}$/.test( s ) ) {
+			return s.substr( 0, 7 );
+		}
 		if ( /^#[0-9a-fA-F]{6}$/.test( s ) ) {
 			return s;
 		}
@@ -180,6 +184,59 @@
 	}
 
 	/**
+	 * Resolve any CSS colour (named, hex, rgb or rgba) to its red, green and blue
+	 * parts, using the canvas to normalise it.
+	 *
+	 * @param {string} color The colour to resolve.
+	 * @return {Array} The red, green and blue values.
+	 */
+	var _colorCtx = null;
+	function colorToRgb( color ) {
+		if ( ! _colorCtx ) {
+			_colorCtx = document.createElement( 'canvas' ).getContext( '2d' );
+		}
+		// Seed with a known colour so an unparseable value stays predictable.
+		_colorCtx.fillStyle = '#000000';
+		_colorCtx.fillStyle = color;
+		var normalised = _colorCtx.fillStyle;
+
+		if ( '#' === normalised.charAt( 0 ) ) {
+			return [
+				parseInt( normalised.substr( 1, 2 ), 16 ),
+				parseInt( normalised.substr( 3, 2 ), 16 ),
+				parseInt( normalised.substr( 5, 2 ), 16 )
+			];
+		}
+		var m = normalised.match( /rgba?\(([^)]+)\)/ );
+		if ( m ) {
+			var parts = m[ 1 ].split( ',' );
+			return [ parseFloat( parts[ 0 ] ), parseFloat( parts[ 1 ] ), parseFloat( parts[ 2 ] ) ];
+		}
+		return [ 0, 0, 0 ];
+	}
+
+	/**
+	 * Combine a fill colour with an opacity from 0 to 100.
+	 *
+	 * At 100 the colour is returned unchanged, so any alpha already in the colour
+	 * (an rgba value or an eight digit hex) is kept. Below 100 the opacity is
+	 * applied as the alpha channel.
+	 *
+	 * @param {string} fill    The fill colour.
+	 * @param {number} opacity The opacity from 0 to 100.
+	 * @return {string} The resulting colour.
+	 */
+	function fillWithOpacity( fill, opacity ) {
+		fill = fill || 'transparent';
+		var o = ( opacity === undefined || opacity === null ) ? 100 : num( opacity, 100 );
+		if ( o >= 100 || 'transparent' === fill ) {
+			return fill;
+		}
+		var rgb = colorToRgb( fill );
+		return 'rgba(' + rgb[ 0 ] + ', ' + rgb[ 1 ] + ', ' + rgb[ 2 ] + ', ' + ( o / 100 ) + ')';
+	}
+
+	/**
 	 * Apply a text layer's controls to a div element, including the optional
 	 * background shape so a word can sit inside a filled circle or pill. The
 	 * transform is never set here, the loop owns it, and the display is owned by
@@ -217,7 +274,7 @@
 		if ( hasBox ) {
 			el.style.width = num( bg.width, 0 ) + 'px';
 			el.style.height = num( bg.height, 0 ) + 'px';
-			el.style.backgroundColor = bg.fill || 'transparent';
+			el.style.backgroundColor = fillWithOpacity( bg.fill, bg.fillOpacity );
 			el.style.borderStyle = 'solid';
 			el.style.borderWidth = num( bg.borderWidth, 0 ) + 'px';
 			el.style.borderColor = bg.borderColor || 'transparent';

@@ -405,6 +405,7 @@ class KDNA_CC_Data {
 				'width'        => self::sanitize_number( $bg, 'width', 70, 0, 2000 ),
 				'height'       => self::sanitize_number( $bg, 'height', 70, 0, 2000 ),
 				'fill'         => self::sanitize_color_field( $bg, 'fill', '#808080' ),
+				'fillOpacity'  => (int) self::sanitize_number( $bg, 'fillOpacity', 100, 0, 100 ),
 				'borderWidth'  => self::sanitize_number( $bg, 'borderWidth', 0, 0, 100 ),
 				'borderColor'  => self::sanitize_color_field( $bg, 'borderColor', 'transparent' ),
 				'borderRadius' => self::sanitize_length_field( $bg, 'borderRadius', '100%' ),

@@ -29,9 +29,10 @@ if ( ! function_exists( 'kdna_cc_slider' ) ) {
  * @param string $label The control label.
  * @param string $path  The Alpine expression for the bound value.
  * @param int    $max   The slider maximum.
+ * @param string $unit  The unit label shown after the inputs.
  * @return void
  */
-function kdna_cc_slider( $label, $path, $max ) {
+function kdna_cc_slider( $label, $path, $max, $unit = 'px' ) {
 	?>
 	<div class="kdna-cc-control">
 		<label class="kdna-cc-control-label"><?php echo esc_html( $label ); ?></label>
@@ -39,7 +40,7 @@ function kdna_cc_slider( $label, $path, $max ) {
 			<div class="kdna-cc-range">
 				<input type="range" min="0" max="<?php echo esc_attr( $max ); ?>" step="1" x-model.number="<?php echo esc_attr( $path ); ?>">
 				<input type="number" class="small-text" min="0" max="<?php echo esc_attr( $max ); ?>" x-model.number="<?php echo esc_attr( $path ); ?>">
-				<span class="kdna-cc-unit">px</span>
+				<span class="kdna-cc-unit"><?php echo esc_html( $unit ); ?></span>
 			</div>
 		</div>
 	</div>
@@ -372,6 +373,7 @@ function kdna_cc_blend_select( $path ) {
 											<?php kdna_cc_slider( __( 'Width', 'kdna-custom-cursor' ), 'stateBlock().background.width', 300 ); ?>
 											<?php kdna_cc_slider( __( 'Height', 'kdna-custom-cursor' ), 'stateBlock().background.height', 300 ); ?>
 											<?php kdna_cc_colour( __( 'Fill', 'kdna-custom-cursor' ), 'stateBlock().background.fill' ); ?>
+											<?php kdna_cc_slider( __( 'Fill opacity', 'kdna-custom-cursor' ), 'stateBlock().background.fillOpacity', 100, '%' ); ?>
 											<?php kdna_cc_slider( __( 'Border width', 'kdna-custom-cursor' ), 'stateBlock().background.borderWidth', 20 ); ?>
 											<?php kdna_cc_colour( __( 'Border colour', 'kdna-custom-cursor' ), 'stateBlock().background.borderColor' ); ?>
 											<div class="kdna-cc-control">

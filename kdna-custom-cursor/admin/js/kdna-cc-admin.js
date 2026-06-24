@@ -92,7 +92,7 @@
 		return {
 			value: '', font: '', size: 16, color: '#ffffff', weight: 'normal',
 			blendMode: 'normal', zIndex: 100,
-			background: { shape: 'none', width: 70, height: 70, fill: '#808080', borderWidth: 0, borderColor: 'transparent', borderRadius: '100%' }
+			background: { shape: 'none', width: 70, height: 70, fill: '#808080', fillOpacity: 100, borderWidth: 0, borderColor: 'transparent', borderRadius: '100%' }
 		};
 	}
 
@@ -122,6 +122,26 @@
 	 */
 	function clone( value ) {
 		return JSON.parse( JSON.stringify( value ) );
+	}
+
+	/**
+	 * Fill in any newer fields a cursor saved by an earlier version may lack, so
+	 * the builder controls always have a value to bind to.
+	 *
+	 * @param {Object} cursor The cursor to normalise.
+	 * @return {Object} The same cursor.
+	 */
+	function ensureDefaults( cursor ) {
+		if ( ! cursor ) {
+			return cursor;
+		}
+		[ 'text', 'hover' ].forEach( function ( key ) {
+			var block = cursor[ key ];
+			if ( block && block.background && ( block.background.fillOpacity === undefined || block.background.fillOpacity === null ) ) {
+				block.background.fillOpacity = 100;
+			}
+		} );
+		return cursor;
 	}
 
 	// Register the component before Alpine boots.
@@ -398,7 +418,7 @@
 				 * @param {Object} preset The preset cursor to start from.
 				 */
 				usePreset: function ( preset ) {
-					var cursor = clone( preset );
+					var cursor = ensureDefaults( clone( preset ) );
 					cursor.id = uuid();
 					this.editing = cursor;
 					this.editingState = 'normal';
@@ -415,7 +435,7 @@
 					if ( ! src ) {
 						return;
 					}
-					this.editing = clone( src );
+					this.editing = ensureDefaults( clone( src ) );
 					this.editingState = 'normal';
 					this.activeTab = 'builder';
 				},
