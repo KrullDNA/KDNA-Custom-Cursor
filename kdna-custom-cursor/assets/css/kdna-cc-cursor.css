@@ -14,6 +14,13 @@
 	pointer-events: none;
 }
 
+/* When the show native cursor option is off, hide the system cursor so only
+   the custom cursor is visible. */
+html.kdna-cc-no-native,
+html.kdna-cc-no-native * {
+	cursor: none !important;
+}
+
 /* A single cursor layer (inner or outer). Position comes from transform. */
 .kdna-cc-layer {
 	position: absolute;

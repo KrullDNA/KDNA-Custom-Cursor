@@ -95,6 +95,26 @@ class KDNA_CC_Data {
 	}
 
 	/**
+	 * Get a single saved cursor by its id.
+	 *
+	 * @param string $id The cursor id to find.
+	 * @return array|null The cursor, or null when it does not exist.
+	 */
+	public static function get_cursor( $id ) {
+		if ( empty( $id ) ) {
+			return null;
+		}
+
+		foreach ( self::get_cursors() as $cursor ) {
+			if ( isset( $cursor['id'] ) && $cursor['id'] === $id ) {
+				return $cursor;
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Get the settings, always merged with defaults so every key is present.
 	 *
 	 * @return array The settings array with global cursor, rules and options.

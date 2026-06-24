@@ -160,18 +160,23 @@
 	 * Create a shape cursor, building its two layers inside a root element.
 	 *
 	 * @param {HTMLElement} root The element to append the layers to.
+	 * @param {string} position The CSS position for the layers, absolute in the
+	 *                          preview or fixed on the front end.
 	 * @constructor
 	 */
-	function ShapeCursor( root ) {
+	function ShapeCursor( root, position ) {
 		this.root = root;
+		position = position || 'absolute';
 
 		this.outer = document.createElement( 'div' );
 		this.outer.className = 'kdna-cc-layer kdna-cc-layer-outer';
 		this.outer.setAttribute( 'aria-hidden', 'true' );
+		this.outer.style.position = position;
 
 		this.inner = document.createElement( 'div' );
 		this.inner.className = 'kdna-cc-layer kdna-cc-layer-inner';
 		this.inner.setAttribute( 'aria-hidden', 'true' );
+		this.inner.style.position = position;
 
 		root.appendChild( this.outer );
 		root.appendChild( this.inner );
@@ -212,6 +217,19 @@
 	};
 
 	/**
+	 * Show or hide the two layers directly. Used on the front end where there
+	 * is no wrapping overlay to toggle.
+	 *
+	 * @param {boolean} v True to show.
+	 * @return {void}
+	 */
+	ShapeCursor.prototype.setVisible = function ( v ) {
+		var d = v ? 'block' : 'none';
+		this.outer.style.display = d;
+		this.inner.style.display = d;
+	};
+
+	/**
 	 * Remove the layers from the page.
 	 *
 	 * @return {void}
@@ -249,18 +267,25 @@
 		this.local = !! opts.local;
 		this.autoHide = !! opts.autoHide;
 
-		// The overlay holds the cursor layers, sitting over the mount.
-		this.overlay = document.createElement( 'div' );
-		this.overlay.className = 'kdna-cc-cursor-root';
-		this.overlay.style.position = this.local ? 'absolute' : 'fixed';
-		this.overlay.style.top = '0';
-		this.overlay.style.left = '0';
-		this.overlay.style.right = '0';
-		this.overlay.style.bottom = '0';
-		this.overlay.style.pointerEvents = 'none';
-		this.mount.appendChild( this.overlay );
-
-		this.shape = new ShapeCursor( this.overlay );
+		// In the preview (local) the layers live in a non-isolating absolute
+		// overlay inside the mount. On the front end the layers are appended
+		// straight to the mount as fixed elements, so mix-blend-mode can blend
+		// against the page rather than being trapped in an isolated overlay.
+		if ( this.local ) {
+			this.overlay = document.createElement( 'div' );
+			this.overlay.className = 'kdna-cc-cursor-root';
+			this.overlay.style.position = 'absolute';
+			this.overlay.style.top = '0';
+			this.overlay.style.left = '0';
+			this.overlay.style.right = '0';
+			this.overlay.style.bottom = '0';
+			this.overlay.style.pointerEvents = 'none';
+			this.mount.appendChild( this.overlay );
+			this.shape = new ShapeCursor( this.overlay, 'absolute' );
+		} else {
+			this.overlay = null;
+			this.shape = new ShapeCursor( this.mount, 'fixed' );
+		}
 
 		this.cursor = null;
 		this.forcedState = null;
@@ -306,8 +331,10 @@
 	PointerEngine.prototype.update = function ( cursor, forcedState ) {
 		this.cursor = cursor;
 		this.forcedState = forcedState || null;
-		if ( ! this.autoHide ) {
-			this.setVisible( !! cursor );
+		// Hide when there is no cursor. Otherwise the cursor stays hidden until
+		// the first pointer move, which avoids a flash in the top left corner.
+		if ( ! cursor ) {
+			this.setVisible( false );
 		}
 		this._applyState();
 	};
@@ -378,9 +405,8 @@
 			this.placed = true;
 		}
 
-		if ( this.autoHide ) {
-			this.setVisible( true );
-		}
+		// Reveal the cursor once the pointer has actually moved.
+		this.setVisible( true );
 
 		// Update hover from whatever sits under the pointer.
 		var sel = this._hoverSelector();
@@ -467,7 +493,11 @@
 	 */
 	PointerEngine.prototype.setVisible = function ( v ) {
 		this.visible = v;
-		this.overlay.style.display = v ? 'block' : 'none';
+		if ( this.overlay ) {
+			this.overlay.style.display = v ? 'block' : 'none';
+		} else {
+			this.shape.setVisible( v );
+		}
 	};
 
 	/**
@@ -485,9 +515,74 @@
 			cancelAnimationFrame( this.rafId );
 		}
 		this.shape.remove();
-		if ( this.overlay.parentNode ) {
+		if ( this.overlay && this.overlay.parentNode ) {
 			this.overlay.parentNode.removeChild( this.overlay );
 		}
+	};
+
+	/* --------------------------------------------------------------------- */
+	/* Front-end bootstrap                                                   */
+	/* --------------------------------------------------------------------- */
+
+	/**
+	 * Run a callback once the document body is available.
+	 *
+	 * @param {Function} fn The callback.
+	 * @return {void}
+	 */
+	function ready( fn ) {
+		if ( document.body ) {
+			fn();
+		} else {
+			document.addEventListener( 'DOMContentLoaded', fn );
+		}
+	}
+
+	/**
+	 * Start the front-end cursor from a config object.
+	 *
+	 * Resolves the optional global cursor from the library and runs it with a
+	 * single engine over the whole page. Honours the show native cursor option.
+	 * Does nothing when no cursor is configured for this page.
+	 *
+	 * @param {Object} config The front-end config: cursors, globalCursorId, options.
+	 * @return {void}
+	 */
+	KdnaCC.startFrontend = function ( config ) {
+		if ( ! config ) {
+			return;
+		}
+
+		var cursors = config.cursors || {};
+		var globalId = config.globalCursorId || null;
+		var globalCursor = ( globalId && cursors[ globalId ] ) ? cursors[ globalId ] : null;
+
+		// Nothing to run on this page.
+		if ( ! globalCursor ) {
+			return;
+		}
+
+		var options = config.options || {};
+
+		ready( function () {
+			// Honour the show native cursor option by hiding the system cursor
+			// when it is switched off.
+			if ( false === options.showNativeCursor ) {
+				document.documentElement.classList.add( 'kdna-cc-no-native' );
+			}
+
+			// One engine, over the whole document, in viewport coordinates.
+			var engine = new PointerEngine( {
+				mount: document.body,
+				host: document,
+				local: false,
+				autoHide: false
+			} );
+			engine.update( globalCursor, null );
+
+			// Keep a reference so later stages can update or tear it down.
+			KdnaCC._frontend = engine;
+		} );
 	};
 
 	/* --------------------------------------------------------------------- */

@@ -34,6 +34,13 @@ class KDNA_CC_Core {
 	public $admin = null;
 
 	/**
+	 * The front-end handler, created only on the front end.
+	 *
+	 * @var KDNA_CC_Frontend|null
+	 */
+	public $frontend = null;
+
+	/**
 	 * Get the single shared instance, creating it on first use.
 	 *
 	 * @return KDNA_CC_Core The shared instance.
@@ -66,6 +73,8 @@ class KDNA_CC_Core {
 	private function load_dependencies() {
 		if ( is_admin() ) {
 			require_once KDNA_CC_DIR . 'includes/class-kdna-cc-admin.php';
+		} else {
+			require_once KDNA_CC_DIR . 'includes/class-kdna-cc-frontend.php';
 		}
 	}
 
@@ -77,6 +86,8 @@ class KDNA_CC_Core {
 	private function init() {
 		if ( is_admin() ) {
 			$this->admin = new KDNA_CC_Admin();
+		} else {
+			$this->frontend = new KDNA_CC_Frontend();
 		}
 	}
 }
