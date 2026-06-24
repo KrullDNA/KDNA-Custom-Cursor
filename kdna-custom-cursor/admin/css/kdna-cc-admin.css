@@ -1,0 +1,587 @@
+/*
+ * Admin styles for KDNA Custom Cursor.
+ *
+ * Covers the page shell and tabs (Stage 1), and the Library grid, the Shape
+ * builder and the live preview samples (Stage 2). UK English throughout. No em
+ * dashes.
+ */
+
+/* Hide Alpine markup until Alpine has initialised, to avoid a flash. */
+[x-cloak] {
+	display: none !important;
+}
+
+.kdna-cc-wrap {
+	max-width: 1180px;
+}
+
+.kdna-cc-title {
+	margin-bottom: 4px;
+}
+
+.kdna-cc-subtitle {
+	margin-top: 0;
+	color: #50575e;
+	font-size: 13px;
+}
+
+.kdna-cc-field-label {
+	display: block;
+	font-weight: 600;
+	font-size: 12px;
+	margin-bottom: 4px;
+}
+
+/* Two column layout: builder on the left, sticky preview on the right. */
+.kdna-cc-layout {
+	display: flex;
+	gap: 24px;
+	align-items: flex-start;
+}
+
+.kdna-cc-main {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+/* Tabs, rendered as buttons but using the core nav-tab look. */
+.kdna-cc-tabs {
+	margin-bottom: 0;
+}
+
+.kdna-cc-tabs .nav-tab {
+	cursor: pointer;
+	background: #dcdcde;
+	border-bottom: none;
+	font-size: 14px;
+}
+
+.kdna-cc-tabs .nav-tab-active,
+.kdna-cc-tabs .nav-tab-active:focus,
+.kdna-cc-tabs .nav-tab-active:hover {
+	background: #f0f0f1;
+}
+
+.kdna-cc-panels {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	padding: 20px 24px;
+	min-height: 320px;
+}
+
+.kdna-cc-panel-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.kdna-cc-panel h2 {
+	margin-top: 0;
+}
+
+.kdna-cc-placeholder {
+	color: #646970;
+	background: #f6f7f7;
+	border: 1px dashed #c3c4c7;
+	border-radius: 4px;
+	padding: 16px 18px;
+	margin: 12px 0 0;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+/* Footer with reload and the status message. */
+.kdna-cc-footer {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.kdna-cc-message {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.kdna-cc-message-success {
+	color: #007017;
+}
+
+.kdna-cc-message-error {
+	color: #b32d2e;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Library grid                                                           */
+/* ---------------------------------------------------------------------- */
+
+.kdna-cc-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.kdna-cc-card {
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	background: #fff;
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.kdna-cc-thumb {
+	position: relative;
+	width: 100%;
+	height: 96px;
+	border-radius: 4px;
+	background: #1d2327;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.kdna-cc-thumb.is-placeholder {
+	color: #a7aaad;
+	text-transform: uppercase;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+}
+
+.kdna-cc-card-body {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.kdna-cc-card-name {
+	font-weight: 600;
+	font-size: 13px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.kdna-cc-badge {
+	flex: 0 0 auto;
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	background: #f0f0f1;
+	color: #50575e;
+	border-radius: 3px;
+	padding: 2px 6px;
+}
+
+.kdna-cc-card-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.kdna-cc-card-actions .button-link-delete {
+	color: #b32d2e;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Builder                                                                */
+/* ---------------------------------------------------------------------- */
+
+.kdna-cc-empty {
+	text-align: left;
+}
+
+.kdna-cc-empty .button {
+	margin-top: 12px;
+}
+
+.kdna-cc-builder-head {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	align-items: flex-end;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #f0f0f1;
+	margin-bottom: 16px;
+}
+
+.kdna-cc-name-field span {
+	display: block;
+	font-weight: 600;
+	font-size: 12px;
+	margin-bottom: 4px;
+}
+
+.kdna-cc-name-field input {
+	min-width: 260px;
+}
+
+/* Segmented button groups, used for Type and the Normal/Hover toggle. */
+.kdna-cc-segment {
+	display: inline-flex;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.kdna-cc-segment button {
+	border: none;
+	background: #fff;
+	padding: 6px 14px;
+	cursor: pointer;
+	font-size: 13px;
+	border-left: 1px solid #c3c4c7;
+}
+
+.kdna-cc-segment button:first-child {
+	border-left: none;
+}
+
+.kdna-cc-segment button.active {
+	background: #2271b1;
+	color: #fff;
+}
+
+.kdna-cc-state-toggle {
+	margin-bottom: 16px;
+}
+
+/* Collapsible Inner Circle and Outer Circle panels. */
+.kdna-cc-panel-group {
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	margin-bottom: 12px;
+	overflow: hidden;
+}
+
+.kdna-cc-panel-head {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: #f6f7f7;
+	border: none;
+	border-bottom: 1px solid #dcdcde;
+	padding: 10px 14px;
+	cursor: pointer;
+	font-weight: 600;
+	font-size: 13px;
+	text-align: left;
+}
+
+.kdna-cc-caret {
+	color: #787c82;
+}
+
+.kdna-cc-panel-body {
+	padding: 12px 14px;
+}
+
+/* A single control row: label on the left, input on the right. */
+.kdna-cc-control {
+	display: grid;
+	grid-template-columns: 130px 1fr;
+	gap: 12px;
+	align-items: center;
+	padding: 7px 0;
+	border-bottom: 1px solid #f6f7f7;
+}
+
+.kdna-cc-control:last-child {
+	border-bottom: none;
+}
+
+.kdna-cc-control-wide {
+	grid-template-columns: 130px 1fr;
+	align-items: start;
+	margin-top: 8px;
+}
+
+.kdna-cc-control-label {
+	font-size: 13px;
+	color: #1d2327;
+}
+
+.kdna-cc-control-input .description {
+	margin: 4px 0 0;
+}
+
+/* Slider plus numeric entry. */
+.kdna-cc-range {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.kdna-cc-range input[type="range"] {
+	flex: 1 1 auto;
+	max-width: 220px;
+}
+
+.kdna-cc-range input[type="number"] {
+	width: 72px;
+}
+
+.kdna-cc-unit {
+	color: #787c82;
+	font-size: 12px;
+	min-width: 22px;
+}
+
+/* Colour swatch plus a free text field. */
+.kdna-cc-colour {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.kdna-cc-colour input[type="color"] {
+	width: 34px;
+	height: 30px;
+	padding: 0;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: none;
+	cursor: pointer;
+}
+
+.kdna-cc-colour input[type="text"] {
+	max-width: 220px;
+}
+
+.kdna-cc-builder-actions {
+	display: flex;
+	gap: 10px;
+	margin-top: 18px;
+	padding-top: 16px;
+	border-top: 1px solid #f0f0f1;
+}
+
+/* Image and Text builders share the control row layout. */
+.kdna-cc-type-builder {
+	margin-top: 4px;
+}
+
+.kdna-cc-subhead {
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #50575e;
+	margin: 16px 0 4px;
+	padding-top: 12px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.kdna-cc-image-preview {
+	display: inline-block;
+	padding: 8px;
+	margin-bottom: 8px;
+	background: #1d2327;
+	border-radius: 4px;
+}
+
+.kdna-cc-image-preview img {
+	display: block;
+	max-width: 120px;
+	max-height: 120px;
+	object-fit: contain;
+}
+
+.kdna-cc-image-buttons {
+	display: flex;
+	gap: 8px;
+	margin: 0 0 4px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Assignment and rules                                                   */
+/* ---------------------------------------------------------------------- */
+
+.kdna-cc-field-block {
+	margin-bottom: 24px;
+	padding-bottom: 20px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.kdna-cc-field-block h3 {
+	margin: 0 0 4px;
+}
+
+.kdna-cc-rules {
+	margin: 12px 0;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.kdna-cc-rule-row {
+	display: grid;
+	grid-template-columns: 56px 1fr 220px auto;
+	gap: 12px;
+	align-items: center;
+	padding: 10px 14px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.kdna-cc-rule-row:last-child {
+	border-bottom: none;
+}
+
+.kdna-cc-rule-head {
+	background: #f6f7f7;
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #50575e;
+}
+
+.kdna-cc-rule-order {
+	text-align: center;
+	font-weight: 600;
+	color: #50575e;
+}
+
+.kdna-cc-rule-row input[type="text"],
+.kdna-cc-rule-row select {
+	width: 100%;
+	margin: 0;
+}
+
+.kdna-cc-rule-actions {
+	display: flex;
+	gap: 6px;
+}
+
+.kdna-cc-rule-actions .button-link-delete {
+	color: #b32d2e;
+}
+
+/* Option toggles. */
+.kdna-cc-options {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 10px 24px;
+	margin: 8px 0 10px;
+}
+
+.kdna-cc-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+}
+
+/* Starter presets sit under the saved library grid. */
+.kdna-cc-presets {
+	margin-top: 28px;
+	padding-top: 20px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.kdna-cc-presets h3 {
+	margin: 0 0 4px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Live preview pane                                                      */
+/* ---------------------------------------------------------------------- */
+
+.kdna-cc-preview {
+	flex: 0 0 320px;
+	position: sticky;
+	top: 46px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px 18px;
+}
+
+.kdna-cc-preview-title {
+	margin-top: 0;
+	font-size: 14px;
+}
+
+.kdna-cc-preview-stage {
+	position: relative;
+	min-height: 260px;
+	background: #15191d;
+	background-image: linear-gradient(135deg, #15191d 0%, #232b32 100%);
+	border-radius: 6px;
+	padding: 20px;
+	overflow: hidden;
+}
+
+.kdna-cc-preview-stage.is-cursor-on {
+	cursor: none;
+}
+
+.kdna-cc-sample {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	align-items: flex-start;
+}
+
+.kdna-cc-sample-btn {
+	background: #2271b1;
+	color: #fff;
+	border: none;
+	border-radius: 4px;
+	padding: 10px 20px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.kdna-cc-sample-link {
+	color: #72aee6;
+	font-size: 14px;
+	text-decoration: underline;
+}
+
+.kdna-cc-sample-input {
+	width: 100%;
+	max-width: 220px;
+	padding: 8px 10px;
+	border-radius: 4px;
+	border: 1px solid #50575e;
+	background: #1d2327;
+	color: #f0f0f1;
+}
+
+.kdna-cc-preview-hint {
+	position: absolute;
+	left: 20px;
+	right: 20px;
+	bottom: 16px;
+	color: #a7aaad;
+	font-size: 12px;
+	margin: 0;
+}
+
+.kdna-cc-preview-note {
+	color: #646970;
+	font-size: 12px;
+	line-height: 1.5;
+	margin: 12px 0 0;
+}
+
+/* Collapse to a single column on narrower admin screens. */
+@media screen and (max-width: 1100px) {
+	.kdna-cc-layout {
+		flex-direction: column;
+	}
+
+	.kdna-cc-preview {
+		flex-basis: auto;
+		width: 100%;
+		position: static;
+	}
+}
