@@ -41,6 +41,14 @@ class KDNA_CC_Core {
 	public $frontend = null;
 
 	/**
+	 * The optional Elementor integration, created in every context so the
+	 * control registers in the editor and applies on the front end.
+	 *
+	 * @var KDNA_CC_Elementor|null
+	 */
+	public $elementor = null;
+
+	/**
 	 * Get the single shared instance, creating it on first use.
 	 *
 	 * @return KDNA_CC_Core The shared instance.
@@ -71,6 +79,10 @@ class KDNA_CC_Core {
 	 * @return void
 	 */
 	private function load_dependencies() {
+		// The Elementor integration loads in every context so its control is
+		// registered both in the editor and on the front end.
+		require_once KDNA_CC_DIR . 'includes/class-kdna-cc-elementor.php';
+
 		if ( is_admin() ) {
 			require_once KDNA_CC_DIR . 'includes/class-kdna-cc-presets.php';
 			require_once KDNA_CC_DIR . 'includes/class-kdna-cc-admin.php';
@@ -85,6 +97,9 @@ class KDNA_CC_Core {
 	 * @return void
 	 */
 	private function init() {
+		// Register the Elementor hooks at load time, in every context.
+		$this->elementor = new KDNA_CC_Elementor();
+
 		if ( is_admin() ) {
 			$this->admin = new KDNA_CC_Admin();
 		} else {

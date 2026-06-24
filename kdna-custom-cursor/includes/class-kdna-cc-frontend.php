@@ -120,6 +120,26 @@ class KDNA_CC_Frontend {
 			}
 		}
 
+		// Elementor Advanced-tab bindings for this page. Each becomes an internal
+		// rule that sits above the manual class rules, so the per-element choice
+		// wins without conflicting with the manually mapped rules.
+		if ( class_exists( 'KDNA_CC_Elementor' ) ) {
+			foreach ( KDNA_CC_Elementor::get_page_bindings() as $binding ) {
+				$cursor = KDNA_CC_Data::get_cursor( $binding['cursorId'] );
+				if ( null === $cursor ) {
+					continue;
+				}
+				$needed[ $binding['cursorId'] ] = $cursor;
+				array_unshift(
+					$clean_rules,
+					array(
+						'selector' => '.' . $binding['class'],
+						'cursorId' => $binding['cursorId'],
+					)
+				);
+			}
+		}
+
 		// Nothing to run on this page.
 		if ( empty( $global_id ) && empty( $clean_rules ) ) {
 			return null;

@@ -36,10 +36,9 @@ This plugin is delivered in stages. The current build covers:
 * Stage 4: Per-class assignment. A global cursor dropdown and a reorderable class to cursor rule builder in the admin, and full hover swap on the front end using event delegation, first match wins.
 * Stage 5: Image and Text cursor types. An image picker (PNG or SVG) with size, blend and z-index, and a word or emoji with font, size, weight and colour plus an optional circle or pill background, so labels like View and Scroll are possible. Both types have Normal and Hover states and work as the global cursor and as mapped cursors.
 * Stage 6: Option toggles wired (show native cursor, hide on tablet and mobile, hide in admin and editors, respect reduced motion), no init on touch or coarse-pointer devices, reduced-motion falls back to the native cursor, the original KDNA starter presets, and a kdna:content-added rebind for injected content.
+* Stage 7: Optional Elementor integration. A Cursor dropdown in the Advanced tab of sections, columns, containers and widgets that applies a saved cursor to the element through a generated class and a matching internal rule, with no class to type.
 
-Still to come:
-
-* Stage 7: Optional Elementor Advanced-tab cursor picker.
+All seven build stages are complete.
 
 == Accessibility ==
 
@@ -48,6 +47,7 @@ When implemented, the front-end engine respects prefers-reduced-motion by fallin
 == Changelog ==
 
 = 1.0.0 =
+* Stage 7. Optional Elementor integration in class-kdna-cc-elementor.php. A Cursor dropdown is added to the Advanced tab of Elementor sections, columns, containers and widgets, listing the saved cursors. Choosing one applies that cursor to the element without typing a class, by adding a generated kdna-cc-bound class when the element renders and handing the front-end engine a matching internal rule that sits above the manual class rules. The Elementor hooks are registered at load time, not inside elementor/loaded, and the class is added to the element's outer wrapper so it works whether or not the widget has an inner wrapper under the e_optimized_markup experiment.
 * Stage 6. Wired the option toggles in the Assignment and Options tab (show native cursor, hide on tablet, hide on mobile, hide in admin and editors, respect reduced motion). The engine does not initialise on touch or coarse-pointer devices, and when prefers-reduced-motion reduce is set and the option is on it falls back to the native cursor. Added the original KDNA starter presets to the Library (Dot + bar, Ring trail, Terracotta dot, View and Scroll), where choosing one creates a new editable cursor. The engine listens for the kdna:content-added event and rebinds the rules for newly injected nodes under the pointer.
 * Stage 5. Image and Text cursor types added to the builder and the engine. Image cursors use a WordPress media-library picker (PNG or SVG) plus size, blend and z-index. Text cursors are a word or emoji with font, size, weight and colour, plus an optional background shape (none, circle or pill) with its own size, fill, border and radius, so a word sits centred inside a filled circle, the View and Scroll style. Both types have Normal and Hover states and work as the global cursor and as per-class mapped cursors, and the engine rebuilds its renderer when the active cursor type changes.
 * Stage 4. Per-class assignment. The Assignment tab adds a global cursor dropdown and a class to cursor rule builder with repeatable, reorderable rows, first match wins. On the front end a single mousemove listener on document with element.closest evaluates the rules in order, so moving over an element that matches a rule fully swaps the active cursor to the mapped one, and leaving it restores the global cursor or the native cursor. Assets are enqueued when a global cursor or any rule applies to the page.
