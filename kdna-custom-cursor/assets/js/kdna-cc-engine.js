@@ -543,16 +543,28 @@
 		this.rafId = null;
 		this.visible = false;
 
+		// The last pointer position in viewport coordinates, used to rebind on
+		// the kdna:content-added event.
+		this.lastClientX = null;
+		this.lastClientY = null;
+
 		// Bind handlers once so they can be removed later.
 		this._onMove = this._onMove.bind( this );
 		this._onEnter = this._onEnter.bind( this );
 		this._onLeave = this._onLeave.bind( this );
+		this._onContentAdded = this._onContentAdded.bind( this );
 		this._loop = this._loop.bind( this );
 
 		this.host.addEventListener( 'mousemove', this._onMove );
 		if ( this.autoHide ) {
 			this.host.addEventListener( 'mouseenter', this._onEnter );
 			this.host.addEventListener( 'mouseleave', this._onLeave );
+		}
+
+		// On the front end, listen for the site telling us content was injected,
+		// so rules rebind for newly added nodes under the pointer at once.
+		if ( ! this.local ) {
+			document.addEventListener( 'kdna:content-added', this._onContentAdded );
 		}
 
 		// Start hidden when auto hiding, otherwise reveal once a cursor is set.
@@ -720,6 +732,26 @@
 	 * @param {MouseEvent} e The mouse event.
 	 * @return {void}
 	 */
+	/**
+	 * Apply a resolution result: full swap when the active cursor changes, or
+	 * restyle when only the internal state changes.
+	 *
+	 * @param {Object} res The result from _resolve.
+	 * @return {void}
+	 */
+	PointerEngine.prototype._applyResolved = function ( res ) {
+		if ( res.cursor !== this.activeCursor ) {
+			this.activeCursor = res.cursor;
+			this.state = res.state;
+			if ( res.cursor ) {
+				this._applyActive( res.cursor, res.state );
+			}
+		} else if ( res.cursor && res.state !== this.state ) {
+			this.state = res.state;
+			this._applyActive( res.cursor, res.state );
+		}
+	};
+
 	PointerEngine.prototype._onMove = function ( e ) {
 		// Nothing can apply if there is neither a global cursor nor any rules.
 		if ( ! this.globalCursor && ( ! this.rules || ! this.rules.length ) ) {
@@ -738,22 +770,12 @@
 		}
 		this.tx = x;
 		this.ty = y;
-
+		this.lastClientX = e.clientX;
+		this.lastClientY = e.clientY;
 		this.lastTarget = e.target;
-		var res = this._resolve( e.target );
 
-		// Full swap when the active cursor changes, restyle when only the
-		// internal state changes.
-		if ( res.cursor !== this.activeCursor ) {
-			this.activeCursor = res.cursor;
-			this.state = res.state;
-			if ( res.cursor ) {
-				this._applyActive( res.cursor, res.state );
-			}
-		} else if ( res.cursor && res.state !== this.state ) {
-			this.state = res.state;
-			this._applyActive( res.cursor, res.state );
-		}
+		var res = this._resolve( e.target );
+		this._applyResolved( res );
 
 		// No cursor applies here and there is no global, so show nothing.
 		if ( ! res.cursor ) {
@@ -771,6 +793,46 @@
 
 		this.setVisible( true );
 		this._start();
+	};
+
+	/**
+	 * Re-evaluate the rules when the site injects content under the pointer.
+	 *
+	 * Event delegation already means injected content works on the next pointer
+	 * move. This handler lets a site rebind at once when content is added under
+	 * a stationary pointer, by re-resolving at the last known pointer position
+	 * against the current DOM (so only the newly injected nodes are picked up).
+	 *
+	 * @return {void}
+	 */
+	PointerEngine.prototype._onContentAdded = function () {
+		if ( this.local || null === this.lastClientX ) {
+			return;
+		}
+
+		var el = document.elementFromPoint( this.lastClientX, this.lastClientY );
+		if ( ! el ) {
+			return;
+		}
+
+		this.lastTarget = el;
+		var res = this._resolve( el );
+		this._applyResolved( res );
+
+		if ( ! res.cursor ) {
+			this.setVisible( false );
+			this.placed = false;
+			return;
+		}
+
+		// Keep the cursor at the current pointer position.
+		this.tx = this.ox = this.lastClientX;
+		this.ty = this.oy = this.lastClientY;
+		this.placed = true;
+		if ( this.renderer ) {
+			this.renderer.place( this.tx, this.ty, this.ox, this.oy );
+		}
+		this.setVisible( true );
 	};
 
 	/**
@@ -863,6 +925,9 @@
 			this.host.removeEventListener( 'mouseenter', this._onEnter );
 			this.host.removeEventListener( 'mouseleave', this._onLeave );
 		}
+		if ( ! this.local ) {
+			document.removeEventListener( 'kdna:content-added', this._onContentAdded );
+		}
 		if ( this.rafId ) {
 			cancelAnimationFrame( this.rafId );
 		}
@@ -893,11 +958,49 @@
 	}
 
 	/**
+	 * Decide whether the cursor engine should initialise on this device.
+	 *
+	 * Does not run on touch or coarse-pointer devices, on tablet or mobile
+	 * widths when those options are on, or when reduced motion is requested and
+	 * the option is on. In each of these cases the visitor keeps the native
+	 * cursor.
+	 *
+	 * @param {Object} options The option toggles.
+	 * @return {boolean} True if the engine should run.
+	 */
+	function shouldRun( options ) {
+		options = options || {};
+
+		if ( window.matchMedia ) {
+			// A precise hovering pointer (a real mouse) is required.
+			if ( ! window.matchMedia( '(hover: hover) and (pointer: fine)' ).matches ) {
+				return false;
+			}
+			// Reduced motion falls back to the native cursor when the option is on.
+			if ( options.respectReducedMotion && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ) {
+				return false;
+			}
+		}
+
+		// Width based hiding for tablet and mobile.
+		var width = window.innerWidth || document.documentElement.clientWidth || 0;
+		if ( options.hideOnMobile && width <= 767 ) {
+			return false;
+		}
+		if ( options.hideOnTablet && width >= 768 && width <= 1024 ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Start the front-end cursor from a config object.
 	 *
 	 * Resolves the optional global cursor from the library and runs it with a
-	 * single engine over the whole page. Honours the show native cursor option.
-	 * Does nothing when no cursor is configured for this page.
+	 * single engine over the whole page. Honours the device and accessibility
+	 * options, and the show native cursor option. Does nothing when no cursor is
+	 * configured for this page.
 	 *
 	 * @param {Object} config The front-end config: cursors, globalCursorId, options.
 	 * @return {void}
@@ -921,6 +1024,12 @@
 		var options = config.options || {};
 
 		ready( function () {
+			// Honour touch, tablet, mobile and reduced motion. When we should
+			// not run, leave the native cursor untouched.
+			if ( ! shouldRun( options ) ) {
+				return;
+			}
+
 			// Honour the show native cursor option by hiding the system cursor
 			// when it is switched off.
 			if ( false === options.showNativeCursor ) {

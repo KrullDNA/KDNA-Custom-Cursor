@@ -464,6 +464,32 @@
 	color: #b32d2e;
 }
 
+/* Option toggles. */
+.kdna-cc-options {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 10px 24px;
+	margin: 8px 0 10px;
+}
+
+.kdna-cc-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+}
+
+/* Starter presets sit under the saved library grid. */
+.kdna-cc-presets {
+	margin-top: 28px;
+	padding-top: 20px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.kdna-cc-presets h3 {
+	margin: 0 0 4px;
+}
+
 /* ---------------------------------------------------------------------- */
 /* Live preview pane                                                      */
 /* ---------------------------------------------------------------------- */

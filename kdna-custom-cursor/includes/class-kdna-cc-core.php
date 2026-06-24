@@ -72,6 +72,7 @@ class KDNA_CC_Core {
 	 */
 	private function load_dependencies() {
 		if ( is_admin() ) {
+			require_once KDNA_CC_DIR . 'includes/class-kdna-cc-presets.php';
 			require_once KDNA_CC_DIR . 'includes/class-kdna-cc-admin.php';
 		} else {
 			require_once KDNA_CC_DIR . 'includes/class-kdna-cc-frontend.php';

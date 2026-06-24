@@ -141,6 +141,9 @@
 				cursors: [],
 				settings: null,
 
+				// The starter presets, handed in by the server.
+				presets: [],
+
 				// Builder state.
 				editing: null,
 				editingState: 'normal',
@@ -170,6 +173,10 @@
 				 */
 				init: function () {
 					var self = this;
+
+					// Take the starter presets handed in by the server.
+					this.presets = ( window.kdnaCcData && window.kdnaCcData.presets ) ? window.kdnaCcData.presets : [];
+
 					this.load();
 
 					this.$nextTick( function () {
@@ -380,6 +387,19 @@
 					cursor.type = type;
 					// Make the hover block match the chosen type.
 					cursor.hover = this.defaultHoverFor( cursor, type );
+					this.editing = cursor;
+					this.editingState = 'normal';
+					this.activeTab = 'builder';
+				},
+
+				/**
+				 * Create a new editable cursor from a starter preset.
+				 *
+				 * @param {Object} preset The preset cursor to start from.
+				 */
+				usePreset: function ( preset ) {
+					var cursor = clone( preset );
+					cursor.id = uuid();
 					this.editing = cursor;
 					this.editingState = 'normal';
 					this.activeTab = 'builder';

@@ -76,7 +76,15 @@ class KDNA_CC_Frontend {
 	 * @return array|null The config, or null when nothing should run here.
 	 */
 	private function build_config() {
-		$settings  = KDNA_CC_Data::get_settings();
+		$settings = KDNA_CC_Data::get_settings();
+
+		// Honour hide in admin by not running inside an editor or customizer
+		// preview. The WordPress dashboard never enqueues front-end scripts, so
+		// this covers the remaining editing contexts shown on the front end.
+		if ( ! empty( $settings['options']['hideInAdmin'] ) && $this->is_editor_context() ) {
+			return null;
+		}
+
 		$global_id = isset( $settings['globalCursorId'] ) ? $settings['globalCursorId'] : null;
 		$rules_in  = ( isset( $settings['rules'] ) && is_array( $settings['rules'] ) ) ? $settings['rules'] : array();
 
@@ -123,5 +131,25 @@ class KDNA_CC_Frontend {
 			'rules'          => $clean_rules,
 			'options'        => $settings['options'],
 		);
+	}
+
+	/**
+	 * Whether the current request is an editor or customizer preview shown on
+	 * the front end.
+	 *
+	 * @return bool True in an editing context.
+	 */
+	private function is_editor_context() {
+		if ( function_exists( 'is_customize_preview' ) && is_customize_preview() ) {
+			return true;
+		}
+
+		// The Elementor editor loads the page on the front end with this query
+		// argument. A plain existence check is enough, no value is read.
+		if ( isset( $_GET['elementor-preview'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return true;
+		}
+
+		return false;
 	}
 }

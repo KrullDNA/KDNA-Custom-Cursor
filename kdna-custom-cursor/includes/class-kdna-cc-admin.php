@@ -179,6 +179,7 @@ class KDNA_CC_Admin {
 				'nonce'      => wp_create_nonce( self::NONCE_ACTION ),
 				'saveAction' => 'kdna_cc_save',
 				'loadAction' => 'kdna_cc_load',
+				'presets'    => KDNA_CC_Presets::get_presets(),
 			)
 		);
 	}

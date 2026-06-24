@@ -129,7 +129,7 @@ function kdna_cc_blend_select( $path ) {
 					</div>
 
 					<p class="kdna-cc-placeholder" x-show="cursors.length === 0">
-						<?php esc_html_e( 'No cursors yet. Create your first cursor to get started. The original KDNA starter presets arrive in Stage 6.', 'kdna-custom-cursor' ); ?>
+						<?php esc_html_e( 'No cursors yet. Create your first cursor, or choose a starter preset below.', 'kdna-custom-cursor' ); ?>
 					</p>
 
 					<div class="kdna-cc-grid" x-show="cursors.length > 0">
@@ -153,6 +153,28 @@ function kdna_cc_blend_select( $path ) {
 								</div>
 							</div>
 						</template>
+					</div>
+
+					<?php // Original KDNA starter presets. Choosing one creates a new editable cursor. ?>
+					<div class="kdna-cc-presets" x-show="presets.length > 0">
+						<h3><?php esc_html_e( 'Starter presets', 'kdna-custom-cursor' ); ?></h3>
+						<p class="description"><?php esc_html_e( 'Choose a preset to create a new editable cursor, including the Dot + bar, View and Scroll cursors.', 'kdna-custom-cursor' ); ?></p>
+						<div class="kdna-cc-grid">
+							<template x-for="preset in presets" :key="preset.id">
+								<div class="kdna-cc-card">
+									<div class="kdna-cc-thumb" x-effect="renderThumb($el, preset)"></div>
+									<div class="kdna-cc-card-body">
+										<span class="kdna-cc-card-name" x-text="preset.name"></span>
+										<span class="kdna-cc-badge" x-text="preset.type"></span>
+									</div>
+									<div class="kdna-cc-card-actions">
+										<button type="button" class="button button-small button-primary" @click="usePreset(preset)">
+											<?php esc_html_e( 'Use', 'kdna-custom-cursor' ); ?>
+										</button>
+									</div>
+								</div>
+							</template>
+						</div>
 					</div>
 				</section>
 
@@ -448,12 +470,17 @@ function kdna_cc_blend_select( $path ) {
 								</p>
 							</div>
 
-							<?php // Option toggles arrive in Stage 6. ?>
+							<?php // Option toggles. ?>
 							<div class="kdna-cc-field-block">
 								<h3><?php esc_html_e( 'Options', 'kdna-custom-cursor' ); ?></h3>
-								<p class="kdna-cc-placeholder">
-									<?php esc_html_e( 'The option toggles (show native cursor, hide on tablet and mobile, hide in admin, respect reduced motion) arrive in Stage 6.', 'kdna-custom-cursor' ); ?>
-								</p>
+								<div class="kdna-cc-options">
+									<label class="kdna-cc-toggle"><input type="checkbox" x-model="settings.options.showNativeCursor"> <span><?php esc_html_e( 'Show native cursor', 'kdna-custom-cursor' ); ?></span></label>
+									<label class="kdna-cc-toggle"><input type="checkbox" x-model="settings.options.hideOnTablet"> <span><?php esc_html_e( 'Hide on tablet', 'kdna-custom-cursor' ); ?></span></label>
+									<label class="kdna-cc-toggle"><input type="checkbox" x-model="settings.options.hideOnMobile"> <span><?php esc_html_e( 'Hide on mobile', 'kdna-custom-cursor' ); ?></span></label>
+									<label class="kdna-cc-toggle"><input type="checkbox" x-model="settings.options.hideInAdmin"> <span><?php esc_html_e( 'Hide in admin and editors', 'kdna-custom-cursor' ); ?></span></label>
+									<label class="kdna-cc-toggle"><input type="checkbox" x-model="settings.options.respectReducedMotion"> <span><?php esc_html_e( 'Respect reduced motion', 'kdna-custom-cursor' ); ?></span></label>
+								</div>
+								<p class="description"><?php esc_html_e( 'Touch and coarse-pointer devices always fall back to the native cursor.', 'kdna-custom-cursor' ); ?></p>
 							</div>
 
 							<div class="kdna-cc-builder-actions">
