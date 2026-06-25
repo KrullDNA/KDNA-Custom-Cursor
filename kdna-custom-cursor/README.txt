@@ -4,7 +4,7 @@ Tags: cursor, custom cursor, elementor, mouse, pointer
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ All seven build stages are complete.
 When implemented, the front-end engine respects prefers-reduced-motion by falling back to the native cursor, marks cursor layers as aria-hidden, and never intercepts clicks. The engine does not initialise on touch or coarse-pointer devices.
 
 == Changelog ==
+
+= 1.0.3 =
+* Fix the Transition duration and timing on Text and Image cursors. The transition is now a single setting for the whole cursor, taken from its base state, so it eases the same way both entering and leaving the Hover state, with the circle and the word easing together. Before, a Normal to Hover change used the Hover state's own transition, so setting the easing on the Normal state alone appeared to do nothing. Shape cursors are unchanged.
 
 = 1.0.2 =
 * Text cursors gain a Background blur slider, a backdrop-filter blur that frosts the page behind the circle or pill. It is per state, so the Normal and Hover states can blur by different amounts, and it pairs with the Fill opacity slider for a glass effect.
