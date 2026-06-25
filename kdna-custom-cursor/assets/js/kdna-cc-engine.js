@@ -180,7 +180,10 @@
 		el.style.objectFit = 'contain';
 		el.style.mixBlendMode = block.blendMode || 'normal';
 		el.style.zIndex = intval( block.zIndex, 100 );
-		el.style.transition = 'width 150ms ease-out, height 150ms ease-out, opacity 150ms ease-out';
+
+		var dur = intval( block.transitionDuration, 150 ) + 'ms';
+		var tim = block.transitionTiming || 'ease-out';
+		el.style.transition = 'width ' + dur + ' ' + tim + ', height ' + dur + ' ' + tim + ', opacity ' + dur + ' ' + tim;
 	}
 
 	/**
@@ -287,7 +290,23 @@
 			el.style.borderRadius = '0';
 		}
 
-		el.style.transition = 'width 150ms ease-out, height 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out, font-size 150ms ease-out';
+		// Optional backdrop blur, the frosted glass effect that blurs the page
+		// behind the background box. Only applied when there is a box.
+		var blur = hasBox ? num( bg.backdropBlur, 0 ) : 0;
+		var backdrop = blur > 0 ? ( 'blur(' + blur + 'px)' ) : '';
+		el.style.backdropFilter = backdrop;
+		el.style.webkitBackdropFilter = backdrop;
+
+		var dur = intval( block.transitionDuration, 150 ) + 'ms';
+		var tim = block.transitionTiming || 'ease-out';
+		el.style.transition = [
+			'width ' + dur + ' ' + tim,
+			'height ' + dur + ' ' + tim,
+			'background-color ' + dur + ' ' + tim,
+			'color ' + dur + ' ' + tim,
+			'font-size ' + dur + ' ' + tim,
+			'backdrop-filter ' + dur + ' ' + tim
+		].join( ', ' );
 	}
 
 	/* --------------------------------------------------------------------- */
@@ -605,11 +624,15 @@
 		this.lastClientX = null;
 		this.lastClientY = null;
 
+		// Coalesces scroll re-resolution to one pass per animation frame.
+		this._scrollScheduled = false;
+
 		// Bind handlers once so they can be removed later.
 		this._onMove = this._onMove.bind( this );
 		this._onEnter = this._onEnter.bind( this );
 		this._onLeave = this._onLeave.bind( this );
 		this._onContentAdded = this._onContentAdded.bind( this );
+		this._onScroll = this._onScroll.bind( this );
 		this._loop = this._loop.bind( this );
 
 		this.host.addEventListener( 'mousemove', this._onMove );
@@ -618,10 +641,13 @@
 			this.host.addEventListener( 'mouseleave', this._onLeave );
 		}
 
-		// On the front end, listen for the site telling us content was injected,
-		// so rules rebind for newly added nodes under the pointer at once.
+		// On the front end, rebind under a stationary pointer when content is
+		// injected or when the page scrolls, so the cursor reacts to whatever has
+		// moved beneath it without needing a mouse move. Scroll is captured so it
+		// also catches scrolling inside nested scroll containers.
 		if ( ! this.local ) {
 			document.addEventListener( 'kdna:content-added', this._onContentAdded );
+			window.addEventListener( 'scroll', this._onScroll, { passive: true, capture: true } );
 		}
 
 		// Start hidden when auto hiding, otherwise reveal once a cursor is set.
@@ -853,16 +879,17 @@
 	};
 
 	/**
-	 * Re-evaluate the rules when the site injects content under the pointer.
+	 * Re-resolve the active cursor at the last known pointer position against the
+	 * current DOM, without needing a pointer move.
 	 *
-	 * Event delegation already means injected content works on the next pointer
-	 * move. This handler lets a site rebind at once when content is added under
-	 * a stationary pointer, by re-resolving at the last known pointer position
-	 * against the current DOM (so only the newly injected nodes are picked up).
+	 * Used when something other than the pointer changes what sits beneath it:
+	 * the page scrolling, or content being injected. The cursor stays put on
+	 * screen (the pointer has not moved) but swaps to match the element now under
+	 * it.
 	 *
 	 * @return {void}
 	 */
-	PointerEngine.prototype._onContentAdded = function () {
+	PointerEngine.prototype._reresolve = function () {
 		if ( this.local || null === this.lastClientX ) {
 			return;
 		}
@@ -890,6 +917,33 @@
 			this.renderer.place( this.tx, this.ty, this.ox, this.oy );
 		}
 		this.setVisible( true );
+	};
+
+	/**
+	 * Handle the kdna:content-added event by re-resolving under the pointer.
+	 *
+	 * @return {void}
+	 */
+	PointerEngine.prototype._onContentAdded = function () {
+		this._reresolve();
+	};
+
+	/**
+	 * Handle scrolling by re-resolving under the pointer, coalesced to one pass
+	 * per animation frame so frequent scroll events stay cheap.
+	 *
+	 * @return {void}
+	 */
+	PointerEngine.prototype._onScroll = function () {
+		if ( this._scrollScheduled ) {
+			return;
+		}
+		this._scrollScheduled = true;
+		var self = this;
+		requestAnimationFrame( function () {
+			self._scrollScheduled = false;
+			self._reresolve();
+		} );
 	};
 
 	/**
@@ -984,6 +1038,7 @@
 		}
 		if ( ! this.local ) {
 			document.removeEventListener( 'kdna:content-added', this._onContentAdded );
+			window.removeEventListener( 'scroll', this._onScroll, { capture: true } );
 		}
 		if ( this.rafId ) {
 			cancelAnimationFrame( this.rafId );

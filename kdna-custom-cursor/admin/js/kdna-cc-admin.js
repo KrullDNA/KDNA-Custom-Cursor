@@ -80,7 +80,7 @@
 	 * @return {Object} The default image block.
 	 */
 	function defaultImageBlock() {
-		return { url: '', attachmentId: 0, width: 40, height: 40, blendMode: 'normal', zIndex: 100 };
+		return { url: '', attachmentId: 0, width: 40, height: 40, blendMode: 'normal', zIndex: 100, transitionDuration: 150, transitionTiming: 'ease-out' };
 	}
 
 	/**
@@ -91,8 +91,8 @@
 	function defaultTextBlock() {
 		return {
 			value: '', font: '', size: 16, color: '#ffffff', weight: 'normal',
-			blendMode: 'normal', zIndex: 100,
-			background: { shape: 'none', width: 70, height: 70, fill: '#808080', fillOpacity: 100, borderWidth: 0, borderColor: 'transparent', borderRadius: '100%' }
+			blendMode: 'normal', zIndex: 100, transitionDuration: 150, transitionTiming: 'ease-out',
+			background: { shape: 'none', width: 70, height: 70, fill: '#808080', fillOpacity: 100, backdropBlur: 0, borderWidth: 0, borderColor: 'transparent', borderRadius: '100%' }
 		};
 	}
 
@@ -135,10 +135,27 @@
 		if ( ! cursor ) {
 			return cursor;
 		}
-		[ 'text', 'hover' ].forEach( function ( key ) {
+		// Backfill fields newer versions added on the image, text and hover
+		// blocks. Shape blocks (with inner and outer) carry their own transition
+		// values per layer, so they are left alone here.
+		[ 'image', 'text', 'hover' ].forEach( function ( key ) {
 			var block = cursor[ key ];
-			if ( block && block.background && ( block.background.fillOpacity === undefined || block.background.fillOpacity === null ) ) {
-				block.background.fillOpacity = 100;
+			if ( ! block || block.inner || block.outer ) {
+				return;
+			}
+			if ( block.transitionDuration === undefined || block.transitionDuration === null ) {
+				block.transitionDuration = 150;
+			}
+			if ( ! block.transitionTiming ) {
+				block.transitionTiming = 'ease-out';
+			}
+			if ( block.background ) {
+				if ( block.background.fillOpacity === undefined || block.background.fillOpacity === null ) {
+					block.background.fillOpacity = 100;
+				}
+				if ( block.background.backdropBlur === undefined || block.background.backdropBlur === null ) {
+					block.background.backdropBlur = 0;
+				}
 			}
 		} );
 		return cursor;

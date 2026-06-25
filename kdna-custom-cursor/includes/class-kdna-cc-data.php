@@ -369,12 +369,14 @@ class KDNA_CC_Data {
 		}
 
 		return array(
-			'url'          => isset( $raw['url'] ) ? esc_url_raw( (string) $raw['url'] ) : '',
-			'attachmentId' => (int) self::sanitize_number( $raw, 'attachmentId', 0, 0, 2147483647 ),
-			'width'        => self::sanitize_number( $raw, 'width', 40, 0, 2000 ),
-			'height'       => self::sanitize_number( $raw, 'height', 40, 0, 2000 ),
-			'blendMode'    => self::sanitize_enum( $raw, 'blendMode', self::blend_modes(), 'normal' ),
-			'zIndex'       => (int) self::sanitize_number( $raw, 'zIndex', 100, 0, 2147483647 ),
+			'url'                => isset( $raw['url'] ) ? esc_url_raw( (string) $raw['url'] ) : '',
+			'attachmentId'       => (int) self::sanitize_number( $raw, 'attachmentId', 0, 0, 2147483647 ),
+			'width'              => self::sanitize_number( $raw, 'width', 40, 0, 2000 ),
+			'height'             => self::sanitize_number( $raw, 'height', 40, 0, 2000 ),
+			'blendMode'          => self::sanitize_enum( $raw, 'blendMode', self::blend_modes(), 'normal' ),
+			'zIndex'             => (int) self::sanitize_number( $raw, 'zIndex', 100, 0, 2147483647 ),
+			'transitionDuration' => (int) self::sanitize_number( $raw, 'transitionDuration', 150, 0, 5000 ),
+			'transitionTiming'   => self::sanitize_enum( $raw, 'transitionTiming', self::timings(), 'ease-out' ),
 		);
 	}
 
@@ -393,19 +395,22 @@ class KDNA_CC_Data {
 		$bg = ( isset( $raw['background'] ) && is_array( $raw['background'] ) ) ? $raw['background'] : array();
 
 		return array(
-			'value'      => isset( $raw['value'] ) ? sanitize_text_field( (string) $raw['value'] ) : '',
-			'font'       => self::sanitize_font( isset( $raw['font'] ) ? $raw['font'] : '' ),
-			'size'       => self::sanitize_number( $raw, 'size', 16, 0, 500 ),
-			'color'      => self::sanitize_color_field( $raw, 'color', '#ffffff' ),
-			'weight'     => self::sanitize_font_weight( isset( $raw['weight'] ) ? $raw['weight'] : 'normal' ),
-			'blendMode'  => self::sanitize_enum( $raw, 'blendMode', self::blend_modes(), 'normal' ),
-			'zIndex'     => (int) self::sanitize_number( $raw, 'zIndex', 100, 0, 2147483647 ),
-			'background' => array(
+			'value'              => isset( $raw['value'] ) ? sanitize_text_field( (string) $raw['value'] ) : '',
+			'font'               => self::sanitize_font( isset( $raw['font'] ) ? $raw['font'] : '' ),
+			'size'               => self::sanitize_number( $raw, 'size', 16, 0, 500 ),
+			'color'              => self::sanitize_color_field( $raw, 'color', '#ffffff' ),
+			'weight'             => self::sanitize_font_weight( isset( $raw['weight'] ) ? $raw['weight'] : 'normal' ),
+			'blendMode'          => self::sanitize_enum( $raw, 'blendMode', self::blend_modes(), 'normal' ),
+			'zIndex'             => (int) self::sanitize_number( $raw, 'zIndex', 100, 0, 2147483647 ),
+			'transitionDuration' => (int) self::sanitize_number( $raw, 'transitionDuration', 150, 0, 5000 ),
+			'transitionTiming'   => self::sanitize_enum( $raw, 'transitionTiming', self::timings(), 'ease-out' ),
+			'background'         => array(
 				'shape'        => self::sanitize_enum( $bg, 'shape', self::background_shapes(), 'none' ),
 				'width'        => self::sanitize_number( $bg, 'width', 70, 0, 2000 ),
 				'height'       => self::sanitize_number( $bg, 'height', 70, 0, 2000 ),
 				'fill'         => self::sanitize_color_field( $bg, 'fill', '#808080' ),
 				'fillOpacity'  => (int) self::sanitize_number( $bg, 'fillOpacity', 100, 0, 100 ),
+				'backdropBlur' => (int) self::sanitize_number( $bg, 'backdropBlur', 0, 0, 100 ),
 				'borderWidth'  => self::sanitize_number( $bg, 'borderWidth', 0, 0, 100 ),
 				'borderColor'  => self::sanitize_color_field( $bg, 'borderColor', 'transparent' ),
 				'borderRadius' => self::sanitize_length_field( $bg, 'borderRadius', '100%' ),
