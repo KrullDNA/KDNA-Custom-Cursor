@@ -2,7 +2,7 @@
 
 ### User Guide
 
-Version 1.0.2
+Version 1.0.3
 
 A custom cursor builder for WordPress and Elementor, with a per-class assignment model. Build animated mouse cursors in the WordPress admin and assign them to specific CSS classes on your pages, with an optional site-wide global cursor.
 
@@ -63,7 +63,7 @@ There is no build step, no npm, and no dependency on WooCommerce. The admin uses
 ## 3. Installing and activating
 
 1. In the WordPress admin go to **Plugins**, then **Add New**, then **Upload Plugin**.
-2. Choose the file `kdna-custom-cursor-1.0.2.zip` and select **Install Now**.
+2. Choose the file `kdna-custom-cursor-1.0.3.zip` and select **Install Now**.
 3. Select **Activate**.
 4. Open **Settings**, then **KDNA Custom Cursor** to start building.
 
@@ -146,7 +146,7 @@ To build a View label:
 6. To give the fill a coloured transparency, drag the **Fill opacity** slider beneath the fill. `100` is solid and `0` is fully see-through. The text inside stays solid, so only the background fades. You can also type an rgba value or an eight digit hex into the Fill field for the same effect, for example `rgba(122,127,135,0.5)` or `#7a7f8780`.
 7. For a frosted glass look, raise the **Background blur** slider. It blurs the page behind the circle or pill, and reads best with a Fill opacity below `100`.
 8. Optionally add a **Border width** and **Border colour**, and adjust the **Border radius**. A circle uses `100%`. For a pill, use a wider Width than Height and a large radius.
-9. Set the **Transition duration** and **Transition timing** to control how smoothly the cursor eases between its Normal and Hover states.
+9. Set the **Transition duration** and **Transition timing** to control how smoothly the cursor eases between its Normal and Hover states. This is one setting for the whole cursor, used in both directions, and the circle and the word ease together.
 10. Name it **View** and select **Save Cursor**.
 
 To make the matching **Scroll** cursor, the quickest route is to **Duplicate** the View cursor in the Library, then change its text to `Scroll`. The two starter presets already include both.
@@ -167,7 +167,7 @@ To build one:
 2. Select **Select image** and choose a PNG or SVG from the WordPress media library. The chosen image appears as a small preview.
 3. Set the **Width** and **Height**. SVGs scale crisply at any size.
 4. Optionally set a **Blending mode** and a **Z-index**.
-5. Set the **Transition duration** and **Transition timing** to ease the change between the Normal and Hover states.
+5. Set the **Transition duration** and **Transition timing** to ease the change between the Normal and Hover states. This is one setting for the whole cursor, used in both directions.
 6. Name it and select **Save Cursor**.
 
 Use **Remove image** to clear the current picture and pick another. Transparent PNGs and SVGs work best, since the area around the artwork stays see-through.
@@ -393,4 +393,4 @@ To remove the plugin completely, delete it from the **Plugins** screen. Deletion
 
 ---
 
-*KDNA Custom Cursor, version 1.0.2. Built for WordPress and Elementor.*
+*KDNA Custom Cursor, version 1.0.3. Built for WordPress and Elementor.*

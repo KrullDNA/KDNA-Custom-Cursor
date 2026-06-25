@@ -156,6 +156,34 @@
 		].join( ', ' );
 	}
 
+	// The properties each cursor type transitions when swapping between its
+	// Normal and Hover states.
+	var IMAGE_TRANSITION_PROPS = [ 'width', 'height', 'opacity' ];
+	var TEXT_TRANSITION_PROPS = [ 'width', 'height', 'background-color', 'color', 'font-size', 'backdrop-filter' ];
+
+	/**
+	 * Apply a single transition to an element for the given properties.
+	 *
+	 * This is read from the cursor's base block so both swap directions use the
+	 * same easing, rather than the per-state value of whichever state is being
+	 * applied.
+	 *
+	 * @param {HTMLElement} el       The element.
+	 * @param {number} duration      The duration in milliseconds.
+	 * @param {string} timing        The timing function.
+	 * @param {Array} props          The CSS properties to transition.
+	 * @return {void}
+	 */
+	function applyTransition( el, duration, timing, props ) {
+		var dur = intval( duration, 150 ) + 'ms';
+		var tim = timing || 'ease-out';
+		var parts = [];
+		for ( var i = 0; i < props.length; i++ ) {
+			parts.push( props[ i ] + ' ' + dur + ' ' + tim );
+		}
+		el.style.transition = parts.join( ', ' );
+	}
+
 	/**
 	 * Apply an image layer's controls to an img element. The transform is never
 	 * set here, the loop owns it.
@@ -180,10 +208,6 @@
 		el.style.objectFit = 'contain';
 		el.style.mixBlendMode = block.blendMode || 'normal';
 		el.style.zIndex = intval( block.zIndex, 100 );
-
-		var dur = intval( block.transitionDuration, 150 ) + 'ms';
-		var tim = block.transitionTiming || 'ease-out';
-		el.style.transition = 'width ' + dur + ' ' + tim + ', height ' + dur + ' ' + tim + ', opacity ' + dur + ' ' + tim;
 	}
 
 	/**
@@ -296,17 +320,6 @@
 		var backdrop = blur > 0 ? ( 'blur(' + blur + 'px)' ) : '';
 		el.style.backdropFilter = backdrop;
 		el.style.webkitBackdropFilter = backdrop;
-
-		var dur = intval( block.transitionDuration, 150 ) + 'ms';
-		var tim = block.transitionTiming || 'ease-out';
-		el.style.transition = [
-			'width ' + dur + ' ' + tim,
-			'height ' + dur + ' ' + tim,
-			'background-color ' + dur + ' ' + tim,
-			'color ' + dur + ' ' + tim,
-			'font-size ' + dur + ' ' + tim,
-			'backdrop-filter ' + dur + ' ' + tim
-		].join( ', ' );
 	}
 
 	/* --------------------------------------------------------------------- */
@@ -438,6 +451,10 @@
 			block = cursor.image || {};
 		}
 		styleImage( this.img, block );
+		// One transition for the whole cursor, taken from the base block so both
+		// the hover in and the hover out use the same easing.
+		var base = cursor.image || {};
+		applyTransition( this.img, base.transitionDuration, base.transitionTiming, IMAGE_TRANSITION_PROPS );
 		this.velocity = 0;
 	};
 
@@ -512,6 +529,11 @@
 			block = cursor.text || {};
 		}
 		styleText( this.el, block );
+		// One transition for the whole cursor, taken from the base block so both
+		// the hover in and the hover out use the same easing, and the circle and
+		// the word ease together.
+		var base = cursor.text || {};
+		applyTransition( this.el, base.transitionDuration, base.transitionTiming, TEXT_TRANSITION_PROPS );
 		this.velocity = 0;
 	};
 

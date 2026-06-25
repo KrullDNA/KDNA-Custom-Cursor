@@ -336,8 +336,14 @@ function kdna_cc_select( $label, $path, $options ) {
 											<input type="number" class="small-text" x-model.number="stateBlock().zIndex">
 										</div>
 									</div>
-									<?php kdna_cc_slider( __( 'Transition duration', 'kdna-custom-cursor' ), 'stateBlock().transitionDuration', 1000, 'ms' ); ?>
-									<?php kdna_cc_select( __( 'Transition timing', 'kdna-custom-cursor' ), 'stateBlock().transitionTiming', array( 'ease', 'ease-out', 'ease-in-out', 'linear' ) ); ?>
+									<?php kdna_cc_slider( __( 'Transition duration', 'kdna-custom-cursor' ), 'editing.image.transitionDuration', 1000, 'ms' ); ?>
+									<?php kdna_cc_select( __( 'Transition timing', 'kdna-custom-cursor' ), 'editing.image.transitionTiming', array( 'ease', 'ease-out', 'ease-in-out', 'linear' ) ); ?>
+									<div class="kdna-cc-control">
+										<span class="kdna-cc-control-label"></span>
+										<div class="kdna-cc-control-input">
+											<p class="description"><?php esc_html_e( 'One easing for the whole cursor, used both entering and leaving the Hover state.', 'kdna-custom-cursor' ); ?></p>
+										</div>
+									</div>
 								</div>
 							</template>
 
@@ -381,8 +387,14 @@ function kdna_cc_select( $label, $path, $options ) {
 											<input type="number" class="small-text" x-model.number="stateBlock().zIndex">
 										</div>
 									</div>
-									<?php kdna_cc_slider( __( 'Transition duration', 'kdna-custom-cursor' ), 'stateBlock().transitionDuration', 1000, 'ms' ); ?>
-									<?php kdna_cc_select( __( 'Transition timing', 'kdna-custom-cursor' ), 'stateBlock().transitionTiming', array( 'ease', 'ease-out', 'ease-in-out', 'linear' ) ); ?>
+									<?php kdna_cc_slider( __( 'Transition duration', 'kdna-custom-cursor' ), 'editing.text.transitionDuration', 1000, 'ms' ); ?>
+									<?php kdna_cc_select( __( 'Transition timing', 'kdna-custom-cursor' ), 'editing.text.transitionTiming', array( 'ease', 'ease-out', 'ease-in-out', 'linear' ) ); ?>
+									<div class="kdna-cc-control">
+										<span class="kdna-cc-control-label"></span>
+										<div class="kdna-cc-control-input">
+											<p class="description"><?php esc_html_e( 'One easing for the whole cursor, used both entering and leaving the Hover state. The circle and the word ease together.', 'kdna-custom-cursor' ); ?></p>
+										</div>
+									</div>
 
 									<div class="kdna-cc-subhead"><?php esc_html_e( 'Background', 'kdna-custom-cursor' ); ?></div>
 									<div class="kdna-cc-control">
