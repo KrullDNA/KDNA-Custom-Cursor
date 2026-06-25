@@ -80,7 +80,7 @@
 	 * @return {Object} The default image block.
 	 */
 	function defaultImageBlock() {
-		return { url: '', attachmentId: 0, width: 40, height: 40, blendMode: 'normal', zIndex: 100, transitionDuration: 150, transitionTiming: 'ease-out' };
+		return { url: '', attachmentId: 0, width: 40, height: 40, blendMode: 'normal', zIndex: 100, transitionDuration: 150, transitionTiming: 'ease-out', velocity: 0 };
 	}
 
 	/**
@@ -91,7 +91,7 @@
 	function defaultTextBlock() {
 		return {
 			value: '', font: '', size: 16, color: '#ffffff', weight: 'normal',
-			blendMode: 'normal', zIndex: 100, transitionDuration: 150, transitionTiming: 'ease-out',
+			blendMode: 'normal', zIndex: 100, transitionDuration: 150, transitionTiming: 'ease-out', velocity: 0,
 			background: { shape: 'none', width: 70, height: 70, fill: '#808080', fillOpacity: 100, backdropBlur: 0, borderWidth: 0, borderColor: 'transparent', borderRadius: '100%' }
 		};
 	}
@@ -148,6 +148,9 @@
 			}
 			if ( ! block.transitionTiming ) {
 				block.transitionTiming = 'ease-out';
+			}
+			if ( block.velocity === undefined || block.velocity === null ) {
+				block.velocity = 0;
 			}
 			if ( block.background ) {
 				if ( block.background.fillOpacity === undefined || block.background.fillOpacity === null ) {

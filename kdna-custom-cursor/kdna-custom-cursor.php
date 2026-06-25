@@ -3,7 +3,7 @@
  * Plugin Name:       KDNA Custom Cursor
  * Plugin URI:        https://krulldna.com/
  * Description:       Build custom animated cursors in the WordPress admin and assign them to specific CSS classes on your Elementor pages, with an optional site-wide global cursor.
- * Version:           1.0.3
+ * Version:           1.0.4
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            KDNA
@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin version. Kept in one place so assets and the readme stay in step.
-define( 'KDNA_CC_VERSION', '1.0.3' );
+define( 'KDNA_CC_VERSION', '1.0.4' );
 
 // Absolute path to this main plugin file.
 define( 'KDNA_CC_FILE', __FILE__ );

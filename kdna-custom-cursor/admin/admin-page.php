@@ -26,20 +26,21 @@ if ( ! function_exists( 'kdna_cc_slider' ) ) {
  * is an Alpine expression that resolves to the value, for example
  * stateBlock().width or stateBlock().background.height.
  *
- * @param string $label The control label.
- * @param string $path  The Alpine expression for the bound value.
- * @param int    $max   The slider maximum.
- * @param string $unit  The unit label shown after the inputs.
+ * @param string    $label The control label.
+ * @param string    $path  The Alpine expression for the bound value.
+ * @param int       $max   The slider maximum.
+ * @param string    $unit  The unit label shown after the inputs.
+ * @param int|float $step  The slider step, 1 by default, smaller for fine values.
  * @return void
  */
-function kdna_cc_slider( $label, $path, $max, $unit = 'px' ) {
+function kdna_cc_slider( $label, $path, $max, $unit = 'px', $step = 1 ) {
 	?>
 	<div class="kdna-cc-control">
 		<label class="kdna-cc-control-label"><?php echo esc_html( $label ); ?></label>
 		<div class="kdna-cc-control-input">
 			<div class="kdna-cc-range">
-				<input type="range" min="0" max="<?php echo esc_attr( $max ); ?>" step="1" x-model.number="<?php echo esc_attr( $path ); ?>">
-				<input type="number" class="small-text" min="0" max="<?php echo esc_attr( $max ); ?>" x-model.number="<?php echo esc_attr( $path ); ?>">
+				<input type="range" min="0" max="<?php echo esc_attr( $max ); ?>" step="<?php echo esc_attr( $step ); ?>" x-model.number="<?php echo esc_attr( $path ); ?>">
+				<input type="number" class="small-text" min="0" max="<?php echo esc_attr( $max ); ?>" step="<?php echo esc_attr( $step ); ?>" x-model.number="<?php echo esc_attr( $path ); ?>">
 				<span class="kdna-cc-unit"><?php echo esc_html( $unit ); ?></span>
 			</div>
 		</div>
@@ -344,6 +345,13 @@ function kdna_cc_select( $label, $path, $options ) {
 											<p class="description"><?php esc_html_e( 'One easing for the whole cursor, used both entering and leaving the Hover state.', 'kdna-custom-cursor' ); ?></p>
 										</div>
 									</div>
+									<?php kdna_cc_slider( __( 'Velocity (trail)', 'kdna-custom-cursor' ), 'editing.image.velocity', 1, '', 0.01 ); ?>
+									<div class="kdna-cc-control">
+										<span class="kdna-cc-control-label"></span>
+										<div class="kdna-cc-control-input">
+											<p class="description"><?php esc_html_e( '0 locks the image to the pointer, higher values let it trail behind, like the Shape outer ring.', 'kdna-custom-cursor' ); ?></p>
+										</div>
+									</div>
 								</div>
 							</template>
 
@@ -393,6 +401,13 @@ function kdna_cc_select( $label, $path, $options ) {
 										<span class="kdna-cc-control-label"></span>
 										<div class="kdna-cc-control-input">
 											<p class="description"><?php esc_html_e( 'One easing for the whole cursor, used both entering and leaving the Hover state. The circle and the word ease together.', 'kdna-custom-cursor' ); ?></p>
+										</div>
+									</div>
+									<?php kdna_cc_slider( __( 'Velocity (trail)', 'kdna-custom-cursor' ), 'editing.text.velocity', 1, '', 0.01 ); ?>
+									<div class="kdna-cc-control">
+										<span class="kdna-cc-control-label"></span>
+										<div class="kdna-cc-control-input">
+											<p class="description"><?php esc_html_e( '0 locks the word to the pointer, higher values let it trail behind, like the Shape outer ring.', 'kdna-custom-cursor' ); ?></p>
 										</div>
 									</div>
 

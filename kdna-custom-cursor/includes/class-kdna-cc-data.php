@@ -377,6 +377,7 @@ class KDNA_CC_Data {
 			'zIndex'             => (int) self::sanitize_number( $raw, 'zIndex', 100, 0, 2147483647 ),
 			'transitionDuration' => (int) self::sanitize_number( $raw, 'transitionDuration', 150, 0, 5000 ),
 			'transitionTiming'   => self::sanitize_enum( $raw, 'transitionTiming', self::timings(), 'ease-out' ),
+			'velocity'           => self::clamp_float( isset( $raw['velocity'] ) ? $raw['velocity'] : 0, 0, 1 ),
 		);
 	}
 
@@ -404,6 +405,7 @@ class KDNA_CC_Data {
 			'zIndex'             => (int) self::sanitize_number( $raw, 'zIndex', 100, 0, 2147483647 ),
 			'transitionDuration' => (int) self::sanitize_number( $raw, 'transitionDuration', 150, 0, 5000 ),
 			'transitionTiming'   => self::sanitize_enum( $raw, 'transitionTiming', self::timings(), 'ease-out' ),
+			'velocity'           => self::clamp_float( isset( $raw['velocity'] ) ? $raw['velocity'] : 0, 0, 1 ),
 			'background'         => array(
 				'shape'        => self::sanitize_enum( $bg, 'shape', self::background_shapes(), 'none' ),
 				'width'        => self::sanitize_number( $bg, 'width', 70, 0, 2000 ),

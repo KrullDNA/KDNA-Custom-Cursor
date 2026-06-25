@@ -434,7 +434,7 @@
 		this.img.style.display = 'block';
 		root.appendChild( this.img );
 
-		// Image cursors lock to the pointer, there is no trailing ring.
+		// Trail amount. 0 locks to the pointer, higher values lag behind it.
 		this.velocity = 0;
 	}
 
@@ -455,18 +455,23 @@
 		// the hover in and the hover out use the same easing.
 		var base = cursor.image || {};
 		applyTransition( this.img, base.transitionDuration, base.transitionTiming, IMAGE_TRANSITION_PROPS );
-		this.velocity = 0;
+		// Trail amount, taken from the base block. 0 locks to the pointer.
+		this.velocity = clamp( base.velocity, 0, 1 );
 	};
 
 	/**
-	 * Position the image at the pointer.
+	 * Position the image. It follows the trailing point so a velocity above 0
+	 * lets it lag behind the pointer, like the Shape outer ring. The first two
+	 * arguments are the raw pointer, the second two are the smoothed point.
 	 *
-	 * @param {number} px Pointer x.
-	 * @param {number} py Pointer y.
+	 * @param {number} tx Pointer x.
+	 * @param {number} ty Pointer y.
+	 * @param {number} ox Trailing x.
+	 * @param {number} oy Trailing y.
 	 * @return {void}
 	 */
-	ImageCursor.prototype.place = function ( px, py ) {
-		this.img.style.transform = 'translate(' + px + 'px,' + py + 'px) translate(-50%, -50%)';
+	ImageCursor.prototype.place = function ( tx, ty, ox, oy ) {
+		this.img.style.transform = 'translate(' + ox + 'px,' + oy + 'px) translate(-50%, -50%)';
 	};
 
 	/**
@@ -512,7 +517,7 @@
 		this.el.style.display = 'inline-flex';
 		root.appendChild( this.el );
 
-		// Text cursors lock to the pointer, there is no trailing ring.
+		// Trail amount. 0 locks to the pointer, higher values lag behind it.
 		this.velocity = 0;
 	}
 
@@ -534,18 +539,23 @@
 		// the word ease together.
 		var base = cursor.text || {};
 		applyTransition( this.el, base.transitionDuration, base.transitionTiming, TEXT_TRANSITION_PROPS );
-		this.velocity = 0;
+		// Trail amount, taken from the base block. 0 locks to the pointer.
+		this.velocity = clamp( base.velocity, 0, 1 );
 	};
 
 	/**
-	 * Position the text at the pointer.
+	 * Position the text. It follows the trailing point so a velocity above 0
+	 * lets it lag behind the pointer, like the Shape outer ring. The first two
+	 * arguments are the raw pointer, the second two are the smoothed point.
 	 *
-	 * @param {number} px Pointer x.
-	 * @param {number} py Pointer y.
+	 * @param {number} tx Pointer x.
+	 * @param {number} ty Pointer y.
+	 * @param {number} ox Trailing x.
+	 * @param {number} oy Trailing y.
 	 * @return {void}
 	 */
-	TextCursor.prototype.place = function ( px, py ) {
-		this.el.style.transform = 'translate(' + px + 'px,' + py + 'px) translate(-50%, -50%)';
+	TextCursor.prototype.place = function ( tx, ty, ox, oy ) {
+		this.el.style.transform = 'translate(' + ox + 'px,' + oy + 'px) translate(-50%, -50%)';
 	};
 
 	/**

@@ -2,7 +2,7 @@
 
 ### User Guide
 
-Version 1.0.3
+Version 1.0.4
 
 A custom cursor builder for WordPress and Elementor, with a per-class assignment model. Build animated mouse cursors in the WordPress admin and assign them to specific CSS classes on your pages, with an optional site-wide global cursor.
 
@@ -63,7 +63,7 @@ There is no build step, no npm, and no dependency on WooCommerce. The admin uses
 ## 3. Installing and activating
 
 1. In the WordPress admin go to **Plugins**, then **Add New**, then **Upload Plugin**.
-2. Choose the file `kdna-custom-cursor-1.0.3.zip` and select **Install Now**.
+2. Choose the file `kdna-custom-cursor-1.0.4.zip` and select **Install Now**.
 3. Select **Activate**.
 4. Open **Settings**, then **KDNA Custom Cursor** to start building.
 
@@ -147,7 +147,8 @@ To build a View label:
 7. For a frosted glass look, raise the **Background blur** slider. It blurs the page behind the circle or pill, and reads best with a Fill opacity below `100`.
 8. Optionally add a **Border width** and **Border colour**, and adjust the **Border radius**. A circle uses `100%`. For a pill, use a wider Width than Height and a large radius.
 9. Set the **Transition duration** and **Transition timing** to control how smoothly the cursor eases between its Normal and Hover states. This is one setting for the whole cursor, used in both directions, and the circle and the word ease together.
-10. Name it **View** and select **Save Cursor**.
+10. Set **Velocity (trail)** to choose how the label follows the pointer. `0` locks it to the pointer, higher values let it lag behind and catch up, the same trailing effect the Shape outer ring has. This is the control to use when you want a Text or Image cursor to trail rather than track exactly. The transition controls above only ease the change between the Normal and Hover states, never the position, so a trail needs this control rather than a longer transition.
+11. Name it **View** and select **Save Cursor**.
 
 To make the matching **Scroll** cursor, the quickest route is to **Duplicate** the View cursor in the Library, then change its text to `Scroll`. The two starter presets already include both.
 
@@ -168,7 +169,8 @@ To build one:
 3. Set the **Width** and **Height**. SVGs scale crisply at any size.
 4. Optionally set a **Blending mode** and a **Z-index**.
 5. Set the **Transition duration** and **Transition timing** to ease the change between the Normal and Hover states. This is one setting for the whole cursor, used in both directions.
-6. Name it and select **Save Cursor**.
+6. Set **Velocity (trail)** to choose how the image follows the pointer. `0` locks it to the pointer, higher values let it lag behind and catch up, like the Shape outer ring.
+7. Name it and select **Save Cursor**.
 
 Use **Remove image** to clear the current picture and pick another. Transparent PNGs and SVGs work best, since the area around the artwork stays see-through.
 
@@ -203,7 +205,7 @@ The Shape builder exposes the full set of controls for the inner and the outer l
 | Border radius | inner, outer, text background | `100%` gives a circle, or a pixel value |
 | Transition duration and timing | all types | Milliseconds, with ease, ease-out, ease-in-out or linear |
 | Blending mode | all | normal, difference, multiply, screen or exclusion |
-| Velocity (trail) | outer | `0` locks to the pointer, higher gives more lag |
+| Velocity (trail) | outer, image, text | `0` locks to the pointer, higher gives more lag and a longer trail |
 | Z-index | all | Stacking order, default 100 for inner and 101 for outer |
 | Backdrop filter | shape layers | Optional, for example `blur(2px)` |
 
@@ -393,4 +395,4 @@ To remove the plugin completely, delete it from the **Plugins** screen. Deletion
 
 ---
 
-*KDNA Custom Cursor, version 1.0.3. Built for WordPress and Elementor.*
+*KDNA Custom Cursor, version 1.0.4. Built for WordPress and Elementor.*
